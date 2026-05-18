@@ -11,8 +11,8 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Can } from "@/lib/primitives/rbac/hooks";
-import { PermissionKey } from "@/lib/primitives/rbac/types";
+import { Can, usePermissions } from "@/lib/primitives/rbac/hooks";
+import { PermissionKey, type Role } from "@/lib/primitives/rbac/types";
 import {
   Drawer,
   DrawerClose,
@@ -50,6 +50,12 @@ const MORE_LINKS = [
   { href: "/participants", label: "Participants", permission: PermissionKey.PARTICIPANT_VIEW },
   { href: "/workers", label: "Workers", permission: PermissionKey.WORKER_VIEW },
   { href: "/notice-board", label: "Notice board", permission: PermissionKey.NOTICE_BOARD_VIEW },
+  {
+    href: "/my-availability",
+    label: "My availability",
+    permission: PermissionKey.AVAILABILITY_SUBMIT,
+    roles: ["support_worker"] as Role[],
+  },
   { href: "/my-compliance", label: "My compliance", permission: PermissionKey.COMPLIANCE_SUBMIT },
   { href: "/settings", label: "Settings", permission: PermissionKey.SETTINGS_VIEW },
 ];
@@ -88,6 +94,7 @@ function TabLink({
 
 export function MobileTabBar() {
   const pathname = usePathname();
+  const permissions = usePermissions();
 
   return (
     <nav
@@ -136,18 +143,20 @@ export function MobileTabBar() {
             <ScrollArea className="max-h-[50vh] px-4 pb-8">
               <ul className="space-y-1">
                 {MORE_LINKS.map((item) => (
-                  <li key={item.href}>
-                    <Can permission={item.permission}>
-                      <DrawerClose asChild>
-                        <Link
-                          href={item.href}
-                          className="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                        >
-                          {item.label}
-                        </Link>
-                      </DrawerClose>
-                    </Can>
-                  </li>
+                  item.roles && !item.roles.includes(permissions.role) ? null : (
+                    <li key={item.href}>
+                      <Can permission={item.permission}>
+                        <DrawerClose asChild>
+                          <Link
+                            href={item.href}
+                            className="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                          >
+                            {item.label}
+                          </Link>
+                        </DrawerClose>
+                      </Can>
+                    </li>
+                  )
                 ))}
                 {ALWAYS_LINKS.map((item) => {
                   const Icon = item.icon;

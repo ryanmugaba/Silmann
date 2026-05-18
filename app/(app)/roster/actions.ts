@@ -576,6 +576,10 @@ export async function cancelShift(formData: FormData) {
 
 export async function submitAvailability(formData: FormData) {
   return withPermission(PermissionKey.AVAILABILITY_SUBMIT, async (ctx) => {
+    if (ctx.role !== "support_worker") {
+      return actionError("Only support workers can submit their own availability.");
+    }
+
     const cellsJson = formData.get("cells");
     let cells: unknown = [];
     try {

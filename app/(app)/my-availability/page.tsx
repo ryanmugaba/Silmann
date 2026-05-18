@@ -7,7 +7,7 @@ import { MyAvailabilityClient } from "@/components/roster/my-availability-client
 
 export default async function MyAvailabilityPage() {
   const ctx = await getPermissionContext();
-  if (!can(ctx, PermissionKey.AVAILABILITY_VIEW_OWN)) {
+  if (ctx.role !== "support_worker" || !can(ctx, PermissionKey.AVAILABILITY_VIEW_OWN)) {
     redirect("/dashboard");
   }
 

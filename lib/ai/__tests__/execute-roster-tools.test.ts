@@ -142,6 +142,20 @@ describe("executeRosterTool", () => {
     );
   });
 
+  it("does not allow managers to submit availability through AI", async () => {
+    const result = await executeRosterTool(
+      "submit_availability",
+      {
+        cells: [{ date: "2026-06-13", status: "available" }],
+      },
+      managerContext
+    );
+
+    expect(result).toEqual({
+      error: "Only support workers can submit their own availability.",
+    });
+  });
+
   it("requires an audience before posting notices unless broadcast is explicit", async () => {
     const result = await executeRosterTool(
       "create_notice",

@@ -70,7 +70,9 @@ function promptCapabilities(ctx: PermissionContext) {
       can(ctx, PermissionKey.ROSTER_VIEW) ? "look up shifts and availability" : null,
       can(ctx, PermissionKey.ROSTER_CREATE) ? "create roster shifts" : null,
       can(ctx, PermissionKey.ROSTER_EDIT) ? "update or cancel shifts" : null,
-      can(ctx, PermissionKey.AVAILABILITY_SUBMIT) ? "submit own availability" : null,
+      ctx.role === "support_worker" && can(ctx, PermissionKey.AVAILABILITY_SUBMIT)
+        ? "submit own availability"
+        : null,
       can(ctx, PermissionKey.SHIFT_SWAP_REQUEST) ? "request shift swaps" : null,
       can(ctx, PermissionKey.REMINDER_EDIT) ? "create, complete, and snooze reminders" : null,
       can(ctx, PermissionKey.NOTICE_BOARD_POST) ? "post notice board announcements" : null,
@@ -199,6 +201,9 @@ export async function executeRosterTool(
     }
 
     case "submit_availability": {
+      if (ctx.role !== "support_worker") {
+        return { error: "Only support workers can submit their own availability." };
+      }
       if (!can(ctx, PermissionKey.AVAILABILITY_SUBMIT, { user_id: ctx.user_id })) {
         return { error: "Permission denied: availability:submit" };
       }

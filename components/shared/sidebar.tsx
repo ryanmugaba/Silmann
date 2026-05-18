@@ -22,8 +22,8 @@ import {
   CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { Can } from "@/lib/primitives/rbac/hooks";
-import { PermissionKey } from "@/lib/primitives/rbac/types";
+import { Can, usePermissions } from "@/lib/primitives/rbac/hooks";
+import { PermissionKey, type Role } from "@/lib/primitives/rbac/types";
 import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import {
@@ -37,6 +37,7 @@ type NavItem = {
   label: string;
   icon: React.ComponentType<{ className?: string; strokeWidth?: number | string }>;
   permission?: PermissionKey;
+  roles?: Role[];
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -99,6 +100,7 @@ const NAV_ITEMS: NavItem[] = [
     label: "My availability",
     icon: CalendarDays,
     permission: PermissionKey.AVAILABILITY_SUBMIT,
+    roles: ["support_worker"],
   },
   {
     href: "/my-compliance",
@@ -154,6 +156,7 @@ function NavLink({
 export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
   const width = collapsed ? 64 : 240;
   const reducedMotion = useReducedMotion();
+  const permissions = usePermissions();
 
   return (
     <motion.div
@@ -197,6 +200,9 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
         <ScrollArea className="flex-1 py-3">
           <nav className="flex flex-col gap-0.5 px-2" aria-label="Sidebar">
             {NAV_ITEMS.map((item) => {
+              if (item.roles && !item.roles.includes(permissions.role)) {
+                return null;
+              }
               const link = (
                 <NavLink key={item.href} item={item} collapsed={collapsed} />
               );
