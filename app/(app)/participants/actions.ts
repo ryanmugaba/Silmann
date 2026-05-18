@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import {
   actionError,
   actionSuccess,
@@ -38,8 +39,25 @@ import {
 } from "@/lib/validators/participants";
 import type { Database, Json, ParticipantRow } from "@/types/database";
 
+const UUID_PATTERN =
+  /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+
 function emptyToNull(value: string | undefined): string | null {
   return value?.trim() ? value.trim() : null;
+}
+
+function auditEntityId(value: string): string | null {
+  return UUID_PATTERN.test(value) ? value : null;
+}
+
+function auditRequestMeta() {
+  const headerStore = headers();
+  return {
+    ip_address:
+      headerStore.get("x-forwarded-for")?.split(",")[0]?.trim() ??
+      headerStore.get("x-real-ip"),
+    user_agent: headerStore.get("user-agent"),
+  };
 }
 
 function participantPaths(id?: string): string[] {
@@ -72,9 +90,10 @@ async function writeAudit(
     user_id: userId,
     action,
     entity_type: entityType,
-    entity_id: entityId,
+    entity_id: auditEntityId(entityId),
     before_state: before as Json,
     after_state: after as Json,
+    ...auditRequestMeta(),
   });
 }
 

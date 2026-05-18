@@ -32,6 +32,7 @@ NDIS Supported Independent Living (SIL) management for Australian providers. Des
    | `NEXT_PUBLIC_APP_URL` | App URL (`http://localhost:3000` locally) |
    | `CRON_SECRET` | Random secret for Vercel cron (`/api/cron/reminders-due`) |
    | `RESEND_API_KEY` | Optional — email notifications |
+   | `RESEND_FROM_EMAIL` | Verified sender for email notifications |
    | `TWILIO_*` | Optional — SMS (phase 2) |
 
 3. **Supabase (local)**
@@ -69,7 +70,7 @@ Seed includes **Demo SIL Co**, two houses, six participants (with medications an
 
 ## Database
 
-Migrations: `supabase/migrations/` (`0001` foundation → `0011` shift channels).
+Migrations: `supabase/migrations/` (`0001` foundation → `0013` production hardening).
 
 ```bash
 # Local reset + seed
@@ -80,7 +81,9 @@ npx supabase link --project-ref <your-project-ref>
 npx supabase db push
 ```
 
-**Migrations 0010–0011** (messaging attachments storage, shift-linked channels) are included in the repo; run `db push` or `db reset` so they are applied.
+**Migrations 0010–0013** (messaging attachments storage, shift-linked channels,
+API grants, production hardening) are included in the repo; run `db push` or
+`db reset` so they are applied.
 
 ## Deployment
 
@@ -100,6 +103,9 @@ npx supabase db push
 
 4. Set production environment variables in Vercel (match `.env.local.example`).
 5. Set `CRON_SECRET` in Vercel and add the same value to the project env (cron route validates it).
+6. Enable Google as a Supabase Auth provider and add
+   `<production-url>/auth/callback` plus local preview callback URLs to the
+   provider redirect allow-list.
 
 ### Edge functions & cron
 

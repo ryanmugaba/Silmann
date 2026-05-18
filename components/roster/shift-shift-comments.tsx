@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { format, parseISO } from "date-fns";
 import { MessageSquare } from "lucide-react";
 import { getShiftDetailMeta } from "@/app/(app)/roster/actions";
@@ -27,7 +27,7 @@ export function ShiftShiftComments({
   const [channelId, setChannelId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
-  async function load() {
+  const load = useCallback(async () => {
     setLoading(true);
     const result = await getShiftDetailMeta(shiftId);
     if (result.success && result.data) {
@@ -37,11 +37,11 @@ export function ShiftShiftComments({
       }
     }
     setLoading(false);
-  }
+  }, [shiftId]);
 
   useEffect(() => {
     void load();
-  }, [shiftId]);
+  }, [load]);
 
   if (loading) {
     return (

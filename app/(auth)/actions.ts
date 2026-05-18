@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   actionError,
@@ -24,6 +25,23 @@ import type {
   OrganizationInsert,
   ProfileRow,
 } from "@/types/database";
+
+function getAppUrl(): string {
+  const configuredUrl = process.env.NEXT_PUBLIC_APP_URL;
+  if (configuredUrl) return configuredUrl.replace(/\/$/, "");
+
+  const vercelUrl = process.env.VERCEL_URL;
+  if (vercelUrl) return `https://${vercelUrl}`;
+
+  const headerStore = headers();
+  const host = headerStore.get("x-forwarded-host") ?? headerStore.get("host");
+  if (host) {
+    const proto = headerStore.get("x-forwarded-proto") ?? "https";
+    return `${proto}://${host}`;
+  }
+
+  return "http://localhost:3000";
+}
 
 function inviteExpiry(): string {
   const date = new Date();
@@ -61,6 +79,35 @@ export async function signIn(
   }
 
   redirect("/dashboard");
+}
+
+export async function signInWithGoogle(formData: FormData): Promise<void> {
+  const intent =
+    formData.get("intent") === "owner_signup" ? "owner_signup" : "login";
+  const callbackUrl = new URL("/auth/callback", getAppUrl());
+  callbackUrl.searchParams.set("intent", intent);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: callbackUrl.toString(),
+      queryParams: {
+        access_type: "offline",
+        prompt: "consent",
+      },
+    },
+  });
+
+  if (error || !data.url) {
+    redirect(
+      `/login?error=${encodeURIComponent(
+        error?.message ?? "Google sign-in could not be started."
+      )}`
+    );
+  }
+
+  redirect(data.url);
 }
 
 export async function signUpOwner(
@@ -117,7 +164,7 @@ export async function forgotPassword(
 
   const supabase = await createClient();
   const { error } = await supabase.auth.resetPasswordForEmail(parsed.data.email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000"}/reset-password`,
+    redirectTo: `${getAppUrl()}/reset-password`,
   });
 
   if (error) {

@@ -4,7 +4,7 @@ Use this before onboarding the first pilot SIL provider.
 
 ## Infrastructure
 
-- [ ] All migrations applied to **production** Supabase (`npx supabase db push`), including `0010_message_storage` and `0011_channels_shift_id`
+- [ ] All migrations applied to **production** Supabase (`npx supabase db push`), including `0010_message_storage`, `0011_channels_shift_id`, `0012_api_grants`, and `0013_production_hardening`
 - [ ] RLS enabled on every table; smoke-test with worker vs owner accounts (`npm test` + manual QA)
 - [ ] Supabase project in **ap-southeast-2** (Sydney)
 - [ ] Vercel deployment region **syd1** (`vercel.json`)
@@ -16,6 +16,7 @@ Use this before onboarding the first pilot SIL provider.
 - [ ] `OPENAI_API_KEY` set in production (optional `OPENAI_MODEL`, e.g. `gpt-4o-mini`)
 - [ ] `CRON_SECRET` set in Vercel (matches `/api/cron/reminders-due` auth)
 - [ ] `NEXT_PUBLIC_APP_URL` set to production URL
+- [ ] Google Auth provider enabled in Supabase with `/auth/callback` redirect URLs
 - [ ] Resend domain verified (when email notifications go live)
 - [ ] Twilio credentials stubbed or configured (SMS phase 2)
 

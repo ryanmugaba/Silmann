@@ -46,9 +46,17 @@ export default function PrivacyPage() {
           organisation and house. Access is limited by role. Contact your organisation
           owner for data access or correction requests.
         </p>
-        <p className="text-xs">
-          Pilot placeholder — replace with counsel-reviewed policy before production
-          go-live.
+        <h2 className="font-display text-base font-semibold text-foreground">
+          Retention & audit history
+        </h2>
+        <p>
+          Silman keeps operational records, audit logs, and soft-deleted records where
+          required for NDIS governance, incident review, and compliance evidence.
+          Organisation owners can request export or correction support through their
+          Silman support contact.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Last updated: May 2026.
         </p>
       </div>
     </AuthCard>

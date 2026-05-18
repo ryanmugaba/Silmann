@@ -29,6 +29,7 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
+  const publicRoutes = ["/", "/privacy", "/terms", "/auth/callback"];
   const isAuthRoute =
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/signup") ||
@@ -36,7 +37,8 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith("/forgot-password") ||
     request.nextUrl.pathname.startsWith("/reset-password");
 
-  const isPublicRoute = isAuthRoute || request.nextUrl.pathname === "/";
+  const isPublicRoute =
+    isAuthRoute || publicRoutes.includes(request.nextUrl.pathname);
 
   if (!user && !isPublicRoute) {
     const url = request.nextUrl.clone();

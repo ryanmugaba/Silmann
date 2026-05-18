@@ -32,8 +32,7 @@ export function useCan(
     [
       context,
       permission,
-      resource?.house_id,
-      resource?.user_id,
+      resource,
     ]
   );
 }

@@ -35,12 +35,20 @@ export default function TermsPage() {
           Availability
         </h2>
         <p>
-          During the pilot, the service is provided as-is with best-effort support.
-          Scheduled maintenance will be communicated in advance where possible.
+          Silman is operated with commercially reasonable care. Scheduled maintenance
+          will be communicated in advance where possible, and urgent maintenance may be
+          performed to protect security, reliability, or data integrity.
         </p>
-        <p className="text-xs">
-          Pilot placeholder — replace with counsel-reviewed terms before production
-          go-live.
+        <h2 className="font-display text-base font-semibold text-foreground">
+          Acceptable use
+        </h2>
+        <p>
+          You must not misuse the service, attempt to bypass access controls, upload
+          unlawful content, or use Silman for purposes outside your organisation's SIL
+          operations and care coordination responsibilities.
+        </p>
+        <p className="text-xs text-muted-foreground">
+          Last updated: May 2026.
         </p>
       </div>
     </AuthCard>

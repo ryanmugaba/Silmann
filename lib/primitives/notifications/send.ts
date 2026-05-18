@@ -85,9 +85,12 @@ async function sendEmail(
 ): Promise<void> {
   const apiKey = process.env.RESEND_API_KEY;
   if (!apiKey || apiKey.length < 8) {
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[notifications] email stub", { to, subject });
+    const message =
+      "RESEND_API_KEY is required to send email notifications in production.";
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(message);
     }
+    console.info("[notifications] email stub", { to, subject });
     return;
   }
 
@@ -112,9 +115,12 @@ async function sendSms(to: string, body: string): Promise<void> {
   const from = process.env.TWILIO_PHONE_NUMBER;
 
   if (!sid || !token || !from) {
-    if (process.env.NODE_ENV !== "production") {
-      console.info("[notifications] sms stub", { to, body: body.slice(0, 80) });
+    const message =
+      "TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER are required to send SMS notifications in production.";
+    if (process.env.NODE_ENV === "production") {
+      throw new Error(message);
     }
+    console.info("[notifications] sms stub", { to, body: body.slice(0, 80) });
     return;
   }
 
