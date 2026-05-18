@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { format } from "date-fns";
+import { differenceInMinutes, format } from "date-fns";
 import { toast } from "sonner";
 import {
   createShift,
@@ -23,6 +23,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import type { Rule } from "@/lib/primitives/rules/types";
 import { SHIFT_TYPES, SHIFT_TYPE_LABELS, type ShiftType } from "@/lib/types/roster";
+
+const SHIFT_PRESETS = [
+  { label: "Day 7-3", shiftType: "day" as const, start: "07:00", hours: 8 },
+  { label: "Afternoon 3-11", shiftType: "afternoon" as const, start: "15:00", hours: 8 },
+  { label: "Sleepover 10-7", shiftType: "sleepover" as const, start: "22:00", hours: 9 },
+  { label: "Active night", shiftType: "active_overnight" as const, start: "22:00", hours: 8 },
+];
 
 export type ShiftCreateDefaults = {
   houseId?: string;
@@ -63,6 +70,25 @@ export function ShiftCreateModal({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [blockMessages, setBlockMessages] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
+
+  const durationMinutes =
+    startAt && endAt
+      ? differenceInMinutes(new Date(endAt), new Date(startAt))
+      : 0;
+  const durationLabel =
+    durationMinutes > 0
+      ? `${Math.floor(durationMinutes / 60)}h ${durationMinutes % 60}m`
+      : "Check start and end times";
+
+  function applyPreset(preset: (typeof SHIFT_PRESETS)[number]) {
+    const base = startAt ? new Date(startAt) : new Date();
+    const [hours, minutes] = preset.start.split(":").map(Number);
+    base.setHours(hours, minutes, 0, 0);
+    const end = new Date(base.getTime() + preset.hours * 60 * 60 * 1000);
+    setShiftType(preset.shiftType);
+    setStartAt(format(base, "yyyy-MM-dd'T'HH:mm"));
+    setEndAt(format(end, "yyyy-MM-dd'T'HH:mm"));
+  }
 
   useEffect(() => {
     if (!open) return;
@@ -193,6 +219,20 @@ export function ShiftCreateModal({
         <p className="text-sm text-muted-foreground -mt-2 mb-4">
           Shifts are evaluated against care and rostering rules before saving.
         </p>
+        <div className="mb-4 flex flex-wrap gap-2">
+          {SHIFT_PRESETS.map((preset) => (
+            <Button
+              key={preset.label}
+              type="button"
+              size="sm"
+              variant="outline"
+              className="rounded-full"
+              onClick={() => applyPreset(preset)}
+            >
+              {preset.label}
+            </Button>
+          ))}
+        </div>
         <form onSubmit={handleSubmit} className="space-y-4">
             <div className="space-y-2">
               <Label>House</Label>
@@ -208,6 +248,13 @@ export function ShiftCreateModal({
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            <div className="rounded-2xl border bg-muted/30 px-4 py-3 text-sm">
+              <span className="font-medium">Duration:</span>{" "}
+              <span className={durationMinutes > 0 ? "text-muted-foreground" : "text-danger"}>
+                {durationLabel}
+              </span>
             </div>
 
             <div className="grid gap-4 sm:grid-cols-2">

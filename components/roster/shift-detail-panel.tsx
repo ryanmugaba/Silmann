@@ -78,16 +78,31 @@ export function ShiftDetailPanel({
 
   return (
     <Sheet open={open} onOpenChange={onOpenChange}>
-      <SheetContent className="w-full sm:max-w-md">
+      <SheetContent className="w-full overflow-y-auto sm:max-w-md">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2">
-            <Calendar className="h-5 w-5" strokeWidth={1.5} />
-            {format(parseISO(shift.startAt), "EEE d MMM")}
-          </SheetTitle>
-          <SheetDescription>
-            {format(parseISO(shift.startAt), "h:mm a")} –{" "}
-            {format(parseISO(shift.endAt), "h:mm a")}
-          </SheetDescription>
+          <div
+            className="mb-4 rounded-3xl border p-5 text-white shadow-card"
+            style={{
+              background: `linear-gradient(135deg, ${statusColor}, ${statusColor}cc)`,
+            }}
+          >
+            <div className="mb-4 flex items-center justify-between gap-3">
+              <Badge className="bg-white/20 text-white hover:bg-white/25">
+                {shift.status.replace("_", " ")}
+              </Badge>
+              <span className="text-xs font-medium uppercase tracking-[0.16em] text-white/75">
+                {SHIFT_TYPE_LABELS[shift.shiftType]}
+              </span>
+            </div>
+            <SheetTitle className="flex items-center gap-2 text-2xl text-white">
+              <Calendar className="h-5 w-5" strokeWidth={1.5} />
+              {format(parseISO(shift.startAt), "EEE d MMM")}
+            </SheetTitle>
+            <SheetDescription className="mt-1 text-white/80">
+              {format(parseISO(shift.startAt), "h:mm a")} -{" "}
+              {format(parseISO(shift.endAt), "h:mm a")} · {shift.houseName}
+            </SheetDescription>
+          </div>
         </SheetHeader>
 
         <div className="mt-6 space-y-6">
@@ -103,7 +118,7 @@ export function ShiftDetailPanel({
             <Badge variant="secondary">{shift.ratio}</Badge>
           </div>
 
-          <div className="space-y-2 text-sm">
+          <div className="rounded-2xl border bg-muted/20 p-4 text-sm shadow-sm">
             <p className="flex items-center gap-2 text-muted-foreground">
               <MapPin className="h-4 w-4" strokeWidth={1.5} />
               {shift.houseName}
@@ -116,7 +131,7 @@ export function ShiftDetailPanel({
             ) : null}
           </div>
 
-          <div className="rounded-2xl border bg-muted/30 p-4">
+          <div className="rounded-2xl border bg-muted/30 p-4 shadow-sm">
             <p className="mb-3 text-sm font-medium">Assigned worker</p>
             {shift.workerId ? (
               <div className="flex items-center gap-3">
@@ -139,7 +154,7 @@ export function ShiftDetailPanel({
           </div>
 
           {canViewPay ? (
-            <div className="rounded-2xl border p-4 text-sm">
+            <div className="rounded-2xl border bg-card p-4 text-sm shadow-sm">
               <p className="font-medium">SCHADS classification</p>
               <p className="mt-1 text-muted-foreground">
                 Ordinary hours · Penalty rates computed at payroll export
@@ -148,7 +163,7 @@ export function ShiftDetailPanel({
           ) : null}
 
           {shift.notes ? (
-            <div className="rounded-2xl bg-muted/50 p-4 text-sm">
+            <div className="rounded-2xl bg-muted/50 p-4 text-sm shadow-sm">
               <p className="font-medium">Notes</p>
               <p className="mt-1 text-muted-foreground">{shift.notes}</p>
             </div>
@@ -159,7 +174,7 @@ export function ShiftDetailPanel({
 
           <div className="flex flex-wrap gap-2 border-t pt-4">
             <Can permission={PermissionKey.ROSTER_EDIT}>
-              <Button size="sm" variant="outline" onClick={() => onEdit?.(shift)}>
+              <Button size="sm" onClick={() => onEdit?.(shift)}>
                 Edit
               </Button>
               <Button

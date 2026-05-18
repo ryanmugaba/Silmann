@@ -6,7 +6,7 @@ export default function RosterLoading() {
     <div className="mx-auto max-w-[1400px] space-y-6">
       <Skeleton className="h-10 w-32" />
       <Skeleton className="h-4 w-64" />
-      <SkeletonCalendar />
+      <SkeletonCalendar variant="week" />
     </div>
   );
 }

@@ -149,13 +149,14 @@
 @layer components {
   .fc {
     --fc-border-color: hsl(var(--border));
+    --fc-neutral-bg-color: hsl(var(--muted) / 0.3);
     --fc-button-bg-color: hsl(var(--secondary));
     --fc-button-border-color: hsl(var(--border));
     --fc-button-text-color: hsl(var(--foreground));
     --fc-button-hover-bg-color: hsl(var(--muted));
     --fc-button-hover-border-color: hsl(var(--border));
     --fc-button-active-bg-color: hsl(var(--accent));
-    --fc-today-bg-color: hsl(var(--accent) / 0.35);
+    --fc-today-bg-color: hsl(var(--primary) / 0.08);
     --fc-event-border-color: transparent;
     --fc-page-bg-color: transparent;
     font-family: inherit;
@@ -169,16 +170,55 @@
     font-weight: 500;
   }
 
+  .fc .fc-col-header-cell {
+    background: hsl(var(--muted) / 0.18);
+    padding: 0.35rem 0;
+  }
+
+  .fc .fc-day-sat,
+  .fc .fc-day-sun {
+    background: hsl(var(--muted) / 0.16);
+  }
+
   .fc .fc-timegrid-slot {
-    height: 2.5rem;
+    height: 2.85rem;
+  }
+
+  .fc .fc-timegrid-slot:hover,
+  .fc .fc-daygrid-day:hover {
+    background: hsl(var(--accent) / 0.18);
   }
 
   .fc .fc-event {
-    border-radius: 0.5rem;
-    padding: 2px 6px;
+    border-radius: 0.75rem;
+    padding: 0;
     font-size: 0.8125rem;
     font-weight: 500;
     cursor: pointer;
+    box-shadow: var(--shadow-sm), 0 8px 18px rgba(0, 0, 0, 0.08);
+    overflow: hidden;
+    transition:
+      transform 150ms ease-out,
+      box-shadow 150ms ease-out,
+      filter 150ms ease-out;
+  }
+
+  .fc .fc-event:hover {
+    transform: translateY(-1px);
+    filter: saturate(1.08);
+    box-shadow: var(--shadow-card-hover);
+  }
+
+  .fc .fc-timegrid-now-indicator-line {
+    border-color: hsl(var(--danger));
+    border-width: 2px 0 0;
+    box-shadow: 0 0 0 3px hsl(var(--danger) / 0.08);
+  }
+
+  .fc .fc-timegrid-now-indicator-arrow {
+    border-color: hsl(var(--danger));
+    border-top-color: transparent;
+    border-bottom-color: transparent;
   }
 
   .fc .fc-event-title {

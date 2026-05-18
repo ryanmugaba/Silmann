@@ -8,12 +8,14 @@ import interactionPlugin from "@fullcalendar/interaction";
 import type { CalendarApi, EventClickArg, DateSelectArg } from "@fullcalendar/core";
 import type { EventResizeDoneArg } from "@fullcalendar/interaction";
 import type { EventDropArg } from "@fullcalendar/core";
+import { format, parseISO } from "date-fns";
 import {
   CalendarDays,
   ChevronLeft,
   ChevronRight,
   Filter,
   Plus,
+  Sparkles,
 } from "lucide-react";
 import { toast } from "sonner";
 import { createClient } from "@/lib/supabase/client";
@@ -74,6 +76,13 @@ function toCalendarEvent(shift: ShiftRecord) {
     borderColor: SHIFT_STATUS_COLORS[shift.status],
     extendedProps: { shift },
   };
+}
+
+function shiftTimeRange(shift: ShiftRecord): string {
+  return `${format(parseISO(shift.startAt), "h:mm a")} - ${format(
+    parseISO(shift.endAt),
+    "h:mm a"
+  )}`;
 }
 
 export function RosterCalendarClient({
@@ -179,6 +188,22 @@ export function RosterCalendarClient({
       ).length,
     [shifts, activeHouseId]
   );
+
+  const rosterStats = useMemo(() => {
+    const confirmed = filteredShifts.filter((s) => s.status === "confirmed").length;
+    const unfilled = filteredShifts.filter((s) => s.status === "unfilled").length;
+    const hours = filteredShifts.reduce((total, shift) => {
+      const start = new Date(shift.startAt).getTime();
+      const end = new Date(shift.endAt).getTime();
+      return total + Math.max(0, end - start) / 36e5;
+    }, 0);
+    return {
+      confirmed,
+      unfilled,
+      total: filteredShifts.length,
+      hours: Math.round(hours),
+    };
+  }, [filteredShifts]);
 
   const events = useMemo(
     () => filteredShifts.map(toCalendarEvent),
@@ -316,13 +341,45 @@ export function RosterCalendarClient({
   return (
     <div className="space-y-6">
       {isMock ? (
-        <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
-          Demo roster data â€” connect Supabase for live shifts and real-time updates.
-        </p>
+        <div className="flex items-center gap-3 rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
+          <Sparkles className="h-4 w-4 shrink-0 text-primary" strokeWidth={1.5} />
+          <p>Demo roster data - connect Supabase for live shifts and real-time updates.</p>
+        </div>
       ) : null}
 
-      <div className="flex flex-wrap items-center justify-between gap-4">
-        <div className="flex flex-wrap items-center gap-2">
+      <div className="overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-card backdrop-blur-xl">
+        <div className="flex flex-col gap-4 border-b border-border/70 bg-gradient-to-br from-primary/10 via-card to-transparent p-4 lg:flex-row lg:items-center lg:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.16em] text-primary">
+              Roster command centre
+            </p>
+            <h2 className="mt-1 font-display text-2xl font-semibold tracking-heading">
+              {filteredShifts.length === 0
+                ? "No visible shifts"
+                : `${filteredShifts.length} visible shifts`}
+            </h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Drag to reschedule, resize to adjust duration, click any shift for detail.
+            </p>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:min-w-[360px]">
+            <div className="rounded-2xl border bg-card/80 px-3 py-2 shadow-sm">
+              <p className="text-[11px] font-medium text-muted-foreground">Confirmed</p>
+              <p className="font-display text-xl font-semibold">{rosterStats.confirmed}</p>
+            </div>
+            <div className="rounded-2xl border bg-card/80 px-3 py-2 shadow-sm">
+              <p className="text-[11px] font-medium text-muted-foreground">Unfilled</p>
+              <p className="font-display text-xl font-semibold text-danger">{rosterStats.unfilled}</p>
+            </div>
+            <div className="rounded-2xl border bg-card/80 px-3 py-2 shadow-sm">
+              <p className="text-[11px] font-medium text-muted-foreground">Hours</p>
+              <p className="font-display text-xl font-semibold">{rosterStats.hours}</p>
+            </div>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap items-center justify-between gap-4 p-4">
+          <div className="flex flex-wrap items-center gap-2">
           <Button variant="outline" size="icon" onClick={goPrev} aria-label="Previous">
             <ChevronLeft className="h-4 w-4" strokeWidth={1.5} />
           </Button>
@@ -363,9 +420,9 @@ export function RosterCalendarClient({
               Jump to date
             </Button>
           )}
-        </div>
+          </div>
 
-        <div className="flex flex-wrap items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
           <div className="flex rounded-xl border bg-muted/30 p-0.5">
             {(
               [
@@ -391,70 +448,84 @@ export function RosterCalendarClient({
               Create shift
             </Button>
           </Can>
+          </div>
         </div>
-      </div>
 
-      <div className="flex flex-wrap items-center gap-2">
-        <Filter className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
-        <Select
-          value={statusFilter}
-          onValueChange={(v) => setStatusFilter(v as ShiftStatus | "all")}
-        >
-          <SelectTrigger className="h-9 w-[140px]">
-            <SelectValue placeholder="Status" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All statuses</SelectItem>
-            {SHIFT_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>
-                {s.replace("_", " ")}
-              </SelectItem>
+        <div className="flex flex-col gap-3 border-t border-border/70 px-4 py-3 lg:flex-row lg:items-center lg:justify-between">
+          <div className="flex flex-wrap items-center gap-2">
+            <Filter className="h-4 w-4 text-muted-foreground" strokeWidth={1.5} />
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => setStatusFilter(v as ShiftStatus | "all")}
+            >
+              <SelectTrigger className="h-9 w-[140px]">
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All statuses</SelectItem>
+                {SHIFT_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>
+                    {s.replace("_", " ")}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select
+              value={typeFilter}
+              onValueChange={(v) => setTypeFilter(v as ShiftType | "all")}
+            >
+              <SelectTrigger className="h-9 w-[160px]">
+                <SelectValue placeholder="Shift type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All types</SelectItem>
+                {SHIFT_TYPES.map((t) => (
+                  <SelectItem key={t} value={t}>
+                    {SHIFT_TYPE_LABELS[t]}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            {workerOptions.length > 0 ? (
+              <Select value={workerFilter} onValueChange={setWorkerFilter}>
+                <SelectTrigger className="h-9 w-[160px]">
+                  <SelectValue placeholder="Worker" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All workers</SelectItem>
+                  {workerOptions.map((w) => (
+                    <SelectItem key={w.id} value={w.id}>
+                      {w.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            ) : null}
+            <Button
+              size="sm"
+              variant={unfilledOnly ? "destructive" : "outline"}
+              onClick={() => setUnfilledOnly((v) => !v)}
+            >
+              Unfilled
+              {unfilledCount > 0 ? (
+                <Badge variant="secondary" className="ml-2 bg-white/20">
+                  {unfilledCount}
+                </Badge>
+              ) : null}
+            </Button>
+          </div>
+          <div className="flex flex-wrap gap-3 text-xs text-muted-foreground">
+            {SHIFT_STATUSES.slice(0, 5).map((status) => (
+              <span key={status} className="inline-flex items-center gap-1.5">
+                <span
+                  className="h-2.5 w-2.5 rounded-full"
+                  style={{ backgroundColor: SHIFT_STATUS_COLORS[status] }}
+                />
+                {status.replace("_", " ")}
+              </span>
             ))}
-          </SelectContent>
-        </Select>
-        <Select
-          value={typeFilter}
-          onValueChange={(v) => setTypeFilter(v as ShiftType | "all")}
-        >
-          <SelectTrigger className="h-9 w-[160px]">
-            <SelectValue placeholder="Shift type" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">All types</SelectItem>
-            {SHIFT_TYPES.map((t) => (
-              <SelectItem key={t} value={t}>
-                {SHIFT_TYPE_LABELS[t]}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        {workerOptions.length > 0 ? (
-          <Select value={workerFilter} onValueChange={setWorkerFilter}>
-            <SelectTrigger className="h-9 w-[160px]">
-              <SelectValue placeholder="Worker" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All workers</SelectItem>
-              {workerOptions.map((w) => (
-                <SelectItem key={w.id} value={w.id}>
-                  {w.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-        ) : null}
-        <Button
-          size="sm"
-          variant={unfilledOnly ? "destructive" : "outline"}
-          onClick={() => setUnfilledOnly((v) => !v)}
-        >
-          Unfilled
-          {unfilledCount > 0 ? (
-            <Badge variant="secondary" className="ml-2 bg-white/20">
-              {unfilledCount}
-            </Badge>
-          ) : null}
-        </Button>
+          </div>
+        </div>
       </div>
 
       <Tabs defaultValue="calendar">
@@ -468,12 +539,22 @@ export function RosterCalendarClient({
         <TabsContent value="calendar" className="mt-4">
           <div
             className={cn(
-              "overflow-hidden rounded-2xl border bg-card p-2 shadow-card",
+              "relative overflow-hidden rounded-3xl border border-border/70 bg-card/90 p-2 shadow-card",
               "[&_.fc]:font-sans [&_.fc-toolbar-title]:font-display [&_.fc-toolbar-title]:text-lg",
-              "[&_.fc-event]:rounded-lg [&_.fc-event]:border-0 [&_.fc-event]:text-xs [&_.fc-event]:font-medium",
+              "[&_.fc-event]:rounded-xl [&_.fc-event]:border-0 [&_.fc-event]:text-xs [&_.fc-event]:font-medium",
               "[&_.fc-col-header-cell]:text-xs [&_.fc-timegrid-slot-label]:text-xs"
             )}
           >
+            {events.length === 0 ? (
+              <div className="pointer-events-none absolute inset-x-6 top-24 z-10 rounded-2xl border border-dashed bg-card/90 px-6 py-8 text-center shadow-card backdrop-blur">
+                <p className="font-display text-lg font-semibold tracking-heading">
+                  No shifts match this view
+                </p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Change filters or drag across a time slot to create a shift.
+                </p>
+              </div>
+            ) : null}
             <FullCalendar
               ref={calendarRef}
               plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -484,7 +565,7 @@ export function RosterCalendarClient({
                 right: "",
               }}
               height="auto"
-              contentHeight={560}
+              contentHeight={720}
               events={events}
               editable={canEdit}
               selectable={canCreate}
@@ -498,7 +579,28 @@ export function RosterCalendarClient({
               eventClick={handleEventClick}
               eventDrop={handleEventDrop}
               eventResize={handleEventResize}
+              eventContent={(arg) => {
+                const shift = arg.event.extendedProps.shift as ShiftRecord;
+                return (
+                  <div className="min-w-0 space-y-0.5 p-1">
+                    <div className="flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 shrink-0 rounded-full bg-white/90" />
+                      <span className="truncate text-[11px] font-semibold leading-tight">
+                        {shift.workerName ?? "Unfilled shift"}
+                      </span>
+                    </div>
+                    <div className="truncate text-[10px] leading-tight opacity-90">
+                      {shiftTimeRange(shift)}
+                    </div>
+                    <div className="truncate text-[10px] leading-tight opacity-80">
+                      {shift.houseName}
+                      {shift.participantName ? ` · ${shift.participantName}` : ""}
+                    </div>
+                  </div>
+                );
+              }}
               datesSet={(arg) => {
+                setView(arg.view.type as CalendarView);
                 visibleRangeRef.current = {
                   start: arg.start.toISOString(),
                   end: arg.end.toISOString(),
