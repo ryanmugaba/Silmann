@@ -9,6 +9,7 @@ import {
   Menu,
   Search,
   Settings,
+  Sparkles,
   User,
 } from "lucide-react";
 import { signOut } from "@/app/(auth)/actions";
@@ -70,6 +71,12 @@ export function TopBar({
 
   return (
     <>
+      <a
+        href="#main-content"
+        className="sr-only focus:not-sr-only focus:fixed focus:left-4 focus:top-4 focus:z-[60] focus:rounded-xl focus:bg-card focus:px-4 focus:py-2 focus:text-sm focus:font-medium focus:shadow-card focus:outline-none focus:ring-2 focus:ring-ring"
+      >
+        Skip to main content
+      </a>
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-card/80 px-4 backdrop-blur-sm md:gap-4 md:px-6">
         <Button
           variant="ghost"
@@ -81,6 +88,19 @@ export function TopBar({
           <Menu className="h-5 w-5" strokeWidth={1.5} />
         </Button>
 
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          className="gap-2 md:hidden"
+          onClick={() => setCommandOpen(true)}
+          aria-label="Open Silman AI and search"
+          aria-haspopup="dialog"
+        >
+          <Sparkles className="h-4 w-4" strokeWidth={1.5} />
+          Ask AI
+        </Button>
+
         <div className="relative hidden max-w-md flex-1 md:block">
           <Search
             className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -89,9 +109,14 @@ export function TopBar({
           <Input
             readOnly
             onClick={() => setCommandOpen(true)}
-            placeholder="Ask AI to roster someone… (⌘K)"
-            className="cursor-pointer bg-muted/40 pl-9"
+            placeholder="Ask AI to roster someone… (Ctrl/⌘K)"
+            className="cursor-pointer bg-muted/40 pl-9 pr-20 hover:bg-muted/60 focus-visible:bg-card"
+            aria-label="Open Silman AI command palette"
+            aria-haspopup="dialog"
           />
+          <span className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-lg border bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground lg:inline">
+            Ctrl/⌘K
+          </span>
         </div>
 
         <div className="ml-auto flex items-center gap-2">

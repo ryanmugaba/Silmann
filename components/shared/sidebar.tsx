@@ -19,6 +19,7 @@ import {
   Users,
   Bell,
   BarChart3,
+  CalendarDays,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Can } from "@/lib/primitives/rbac/hooks";
@@ -96,7 +97,7 @@ const NAV_ITEMS: NavItem[] = [
   {
     href: "/my-availability",
     label: "My availability",
-    icon: Calendar,
+    icon: CalendarDays,
     permission: PermissionKey.AVAILABILITY_SUBMIT,
   },
   {

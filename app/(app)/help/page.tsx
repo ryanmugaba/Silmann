@@ -1,3 +1,4 @@
+import Link from "next/link";
 import {
   BookOpen,
   Bot,
@@ -6,6 +7,7 @@ import {
   Settings,
 } from "lucide-react";
 import { HelpAiPanel } from "@/components/help/help-ai-panel";
+import { Button } from "@/components/ui/button";
 import {
   Card,
   CardContent,
@@ -24,24 +26,32 @@ const QUICK_GUIDES = [
     description:
       "Press Ctrl+K or Command+K and type operational requests like roster changes, reminders, worker invites, and notices.",
     icon: Command,
+    href: "/dashboard",
+    action: "Open dashboard",
   },
   {
     title: "Use module pages",
     description:
       "Roster, Participants, Workers, Notice Board, Messages, and Reminders all remain available from the sidebar.",
     icon: BookOpen,
+    href: "/roster",
+    action: "Open roster",
   },
   {
     title: "Ask for product help",
     description:
       "Use this page to ask how something works. Help AI explains steps without changing records.",
     icon: Bot,
+    href: "/help",
+    action: "Ask below",
   },
   {
     title: "Settings stay manual",
     description:
       "Organisation setup, users, houses, permissions, integrations, and audit log review are handled in Settings.",
     icon: Settings,
+    href: "/settings",
+    action: "Open settings",
   },
 ];
 
@@ -58,7 +68,7 @@ export default function HelpPage() {
             How can we help?
           </h1>
           <p className="max-w-2xl text-muted-foreground">
-            Ask Silman Help how to use the website, or use the quick guides below
+            Ask Silman Help how to use the app, or use the quick guides below
             to understand where key workflows live.
           </p>
         </div>
@@ -80,6 +90,11 @@ export default function HelpPage() {
                   </CardDescription>
                 </div>
               </CardHeader>
+              <CardContent className="pt-0">
+                <Button asChild variant="ghost" size="sm" className="rounded-xl">
+                  <Link href={guide.href}>{guide.action}</Link>
+                </Button>
+              </CardContent>
             </Card>
           );
         })}

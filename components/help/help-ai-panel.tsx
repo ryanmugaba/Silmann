@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Send, Sparkles } from "lucide-react";
+import { Send, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { cn } from "@/lib/utils";
@@ -108,9 +108,9 @@ export function HelpAiPanel() {
           </div>
         ))}
         {loading ? (
-          <div className="mr-auto flex max-w-[90%] items-center gap-2 rounded-2xl border bg-muted/40 px-4 py-3 text-sm text-muted-foreground">
-            <Loader2 className="h-4 w-4 animate-spin" strokeWidth={1.5} />
-            Thinking…
+          <div className="mr-auto max-w-[90%] space-y-2 rounded-2xl border bg-muted/40 px-4 py-3">
+            <div className="h-3 w-40 animate-pulse rounded-full bg-muted-foreground/20" />
+            <div className="h-3 w-28 animate-pulse rounded-full bg-muted-foreground/15" />
           </div>
         ) : null}
       </div>

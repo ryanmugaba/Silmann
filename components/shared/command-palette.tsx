@@ -13,6 +13,7 @@ import {
 import {
   Dialog,
   DialogContent,
+  DialogTitle,
 } from "@/components/ui/dialog";
 import { AiCommandBar, shouldRouteToAi } from "@/components/shared/ai-command-bar";
 import { useCan } from "@/lib/primitives/rbac/hooks";
@@ -48,6 +49,9 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="overflow-hidden p-0 sm:max-w-xl">
+        <DialogTitle className="sr-only">
+          Search Silman or run an AI command
+        </DialogTitle>
         <Command
           className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:text-xs [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground"
           shouldFilter={!isAiQuery}
@@ -57,15 +61,19 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <Command.Input
               value={query}
               onValueChange={setQuery}
-              placeholder="Search or ask AI: roster Sarah on 13 June…"
+              placeholder="Search, type @, or ask AI: roster Sarah on 13 June…"
               className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
             />
+          </div>
+          <div className="border-b bg-muted/30 px-4 py-2 text-xs text-muted-foreground">
+            Tip: type <span className="font-mono text-foreground">@</span> or a full
+            sentence to run work from a prompt.
           </div>
           <Command.List className="max-h-80 overflow-y-auto p-2">
             <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
               {isAiQuery
                 ? "Ask Silman AI to create shifts, find cover, or check availability."
-                : "No results found."}
+                : "No results found. Try @help or ask a full sentence."}
             </Command.Empty>
 
             {isAiQuery ? (
@@ -84,7 +92,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   onSelect={() => run("/roster?action=create-shift")}
                 >
                   <CalendarPlus className="h-4 w-4" strokeWidth={1.5} />
-                  Create shift
+                  <span>Create shift</span>
                 </Command.Item>
               ) : null}
               {canParticipant ? (
@@ -105,6 +113,13 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
                   Post announcement
                 </Command.Item>
               ) : null}
+              <Command.Item
+                className="flex cursor-pointer items-center gap-2 rounded-xl px-3 py-2.5 text-sm aria-selected:bg-accent"
+                onSelect={() => setQuery("@What can you do?")}
+              >
+                <Sparkles className="h-4 w-4" strokeWidth={1.5} />
+                Ask what AI can do
+              </Command.Item>
             </Command.Group>
 
             <Command.Group heading="Navigation">

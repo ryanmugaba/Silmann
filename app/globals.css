@@ -42,7 +42,6 @@
   html[data-density="compact"] {
     --density-padding: 0.75rem;
     --density-gap: 0.5rem;
-    font-size: 14px;
   }
 
   html[data-density="spacious"] {

@@ -72,8 +72,8 @@ function TabLink({
     <Link
       href={href}
       className={cn(
-        "flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[10px] font-medium transition-colors",
-        active ? "text-primary" : "text-muted-foreground"
+        "flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+        active ? "text-primary" : "text-muted-foreground hover:text-foreground"
       )}
       aria-current={active ? "page" : undefined}
     >
@@ -118,7 +118,7 @@ export function MobileTabBar() {
           <DrawerTrigger asChild>
             <Button
               variant="ghost"
-              className="flex min-w-0 flex-1 flex-col items-center gap-0.5 rounded-none px-1 py-2 h-auto text-[10px] font-medium text-muted-foreground"
+              className="flex h-auto min-w-0 flex-1 flex-col items-center gap-0.5 rounded-none px-1 py-2 text-[11px] font-medium text-muted-foreground hover:text-foreground focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring"
               aria-label="More navigation"
               type="button"
             >
@@ -137,7 +137,7 @@ export function MobileTabBar() {
                     <Can permission={item.permission}>
                       <Link
                         href={item.href}
-                        className="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                        className="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         {item.label}
                       </Link>
@@ -150,7 +150,7 @@ export function MobileTabBar() {
                     <li key={item.href}>
                       <Link
                         href={item.href}
-                        className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                        className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                       >
                         <Icon className="h-4 w-4" strokeWidth={1.5} />
                         {item.label}

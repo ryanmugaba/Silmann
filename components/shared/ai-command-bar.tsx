@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { CheckCircle2, Loader2, Sparkles } from "lucide-react";
+import { CheckCircle2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -122,7 +122,7 @@ export function AiCommandBar({ query, onClose, className }: AiCommandBarProps) {
         <Button size="sm" className="flex-1" onClick={() => void run()} disabled={loading}>
           {loading ? (
             <>
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" strokeWidth={1.5} />
+              <span className="mr-2 h-2 w-2 rounded-full bg-primary-foreground/80 animate-pulse" />
               Thinking…
             </>
           ) : (

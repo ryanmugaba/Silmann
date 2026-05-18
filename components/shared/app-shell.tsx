@@ -53,7 +53,10 @@ export function AppShell({
                 notifications={notifications}
                 onToggleSidebar={() => setCollapsed((c) => !c)}
               />
-              <main className="flex-1 overflow-auto p-[var(--density-padding)] md:p-6 lg:p-8">
+              <main
+                id="main-content"
+                className="flex-1 overflow-auto p-[var(--density-padding)] pb-24 md:p-6 lg:p-8"
+              >
                 {children}
               </main>
             </motion.div>

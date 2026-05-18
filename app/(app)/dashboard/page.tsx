@@ -2,8 +2,10 @@ import Link from "next/link";
 import {
   AlertTriangle,
   Calendar,
+  CircleHelp,
   FileWarning,
   Sparkles,
+  Wand2,
 } from "lucide-react";
 import { PendingComplianceWidget } from "@/components/dashboard/pending-compliance-widget";
 import { createClient } from "@/lib/supabase/server";
@@ -42,7 +44,7 @@ export default async function DashboardPage() {
   const widgets = [
     {
       title: "Unfilled shifts",
-      description: "Shifts in the next 7 days without a assigned worker.",
+      description: "Shifts in the next 7 days without an assigned worker.",
       icon: Calendar,
       empty: "No unfilled shifts — your roster is fully covered.",
       href: "/roster",
@@ -56,10 +58,11 @@ export default async function DashboardPage() {
     },
     {
       title: "AI nudges",
-      description: "Proactive suggestions from Silman AI for your houses.",
+      description: "Run operational work from natural-language prompts.",
       icon: Sparkles,
-      empty: "AI insights will surface once modules are connected.",
-      href: "/dashboard",
+      empty: "Press Ctrl/Command+K and ask Silman to roster, remind, invite, or post.",
+      href: "/help",
+      action: "Learn AI prompts",
     },
     {
       title: "Today's incidents",
@@ -81,17 +84,30 @@ export default async function DashboardPage() {
         </p>
       </div>
 
-      <Card className="border-primary/20 bg-gradient-to-br from-primary/5 to-transparent shadow-card">
-        <CardHeader>
-          <CardTitle className="text-lg">Welcome to Silman</CardTitle>
+      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-card to-transparent shadow-card">
+        <CardHeader className="pb-4">
+          <div className="mb-2 inline-flex w-fit items-center gap-2 rounded-full border bg-card/80 px-3 py-1 text-xs font-medium text-primary shadow-sm">
+            <Sparkles className="h-3.5 w-3.5" strokeWidth={1.5} />
+            Prompt-first operations
+          </div>
+          <CardTitle className="text-xl">Run Silman from a sentence</CardTitle>
           <CardDescription>
-            Your foundation is set up. Modules for roster, participants, and
-            compliance will light up as you build them out in upcoming steps.
+            Press Ctrl/Command+K and type things like “roster Sarah at Parramatta
+            SIL on 13 June” or “remind me to review Alex&apos;s plan tomorrow”.
           </CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button asChild size="sm">
+            <Link href="/help">
+              <CircleHelp className="mr-2 h-4 w-4" strokeWidth={1.5} />
+              Learn how it works
+            </Link>
+          </Button>
           <Button asChild variant="outline" size="sm">
-            <Link href="/settings">Organisation settings</Link>
+            <Link href="/roster">
+              <Wand2 className="mr-2 h-4 w-4" strokeWidth={1.5} />
+              Open roster
+            </Link>
           </Button>
         </CardContent>
       </Card>
@@ -119,7 +135,9 @@ export default async function DashboardPage() {
                 <div className="rounded-xl border border-dashed bg-muted/30 px-4 py-8 text-center">
                   <p className="text-sm text-muted-foreground">{widget.empty}</p>
                   <Button asChild variant="ghost" size="sm" className="mt-2">
-                    <Link href={widget.href}>Open module</Link>
+                    <Link href={widget.href}>
+                      {"action" in widget ? widget.action : "Open module"}
+                    </Link>
                   </Button>
                 </div>
               </CardContent>
