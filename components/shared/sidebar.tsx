@@ -130,8 +130,8 @@ function NavLink({
       className={cn(
         "group relative flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-colors duration-150 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
         active
-          ? "bg-primary/10 text-primary before:absolute before:left-0 before:top-1/2 before:h-6 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-primary"
-          : "text-muted-foreground hover:bg-accent hover:text-foreground"
+          ? "bg-primary/15 text-primary shadow-sm before:absolute before:left-0 before:top-1/2 before:h-5 before:w-0.5 before:-translate-y-1/2 before:rounded-full before:bg-primary"
+          : "text-muted-foreground hover:bg-accent/70 hover:text-foreground"
       )}
     >
       <Icon className="h-[18px] w-[18px] shrink-0" strokeWidth={1.5} aria-hidden />
@@ -162,8 +162,8 @@ export function Sidebar({ collapsed, onCollapsedChange }: SidebarProps) {
       animate={{ width }}
       transition={{ duration: reducedMotion ? 0 : 0.15 }}
     >
-      <aside className="sticky top-0 flex h-screen w-full flex-col border-r bg-card/80 backdrop-blur-sm">
-        <div className="flex h-14 items-center justify-between border-b px-3">
+      <aside className="sticky top-0 flex h-screen w-full flex-col border-r border-border/70 bg-card/80 shadow-header backdrop-blur-xl">
+        <div className="flex h-14 items-center justify-between border-b border-border/60 px-3 shadow-sm">
           {!collapsed ? (
             <Link
               href="/dashboard"

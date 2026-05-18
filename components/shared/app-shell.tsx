@@ -39,7 +39,7 @@ export function AppShell({
     <DensityProvider density={density}>
       <HouseProvider houses={houses}>
         <TooltipProvider delayDuration={200}>
-          <div className="flex min-h-screen bg-background">
+          <div className="flex min-h-screen bg-transparent">
             <Sidebar
               collapsed={collapsed}
               onCollapsedChange={setCollapsed}

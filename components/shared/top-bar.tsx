@@ -77,7 +77,7 @@ export function TopBar({
       >
         Skip to main content
       </a>
-      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b bg-card/80 px-4 backdrop-blur-sm md:gap-4 md:px-6">
+      <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/70 bg-card/80 px-4 shadow-header backdrop-blur-xl md:gap-4 md:px-6">
         <Button
           variant="ghost"
           size="sm"
@@ -114,7 +114,7 @@ export function TopBar({
             aria-label="Open Silman AI command palette"
             aria-haspopup="dialog"
           />
-          <span className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-lg border bg-card px-2 py-0.5 text-[10px] font-medium text-muted-foreground lg:inline">
+          <span className="pointer-events-none absolute right-2 top-1/2 hidden -translate-y-1/2 rounded-lg border bg-card px-2 py-0.5 text-xs font-medium tabular-nums text-muted-foreground lg:inline">
             Ctrl/⌘K
           </span>
         </div>

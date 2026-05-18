@@ -78,7 +78,10 @@ export default function HelpPage() {
         {QUICK_GUIDES.map((guide) => {
           const Icon = guide.icon;
           return (
-            <Card key={guide.title} className="shadow-card">
+            <Card
+              key={guide.title}
+              className="shadow-card transition-shadow duration-200 ease-out hover:shadow-card-hover"
+            >
               <CardHeader className="space-y-3">
                 <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-muted">
                   <Icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />

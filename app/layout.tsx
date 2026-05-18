@@ -40,7 +40,7 @@ export default function RootLayout({
             aria-live="polite"
             toastOptions={{
               classNames: {
-                toast: "rounded-2xl shadow-card border",
+                toast: "rounded-2xl border-border/70 shadow-card",
               },
             }}
             richColors

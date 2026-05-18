@@ -121,10 +121,13 @@ export default async function DashboardPage() {
         {widgets.map((widget) => {
           const Icon = widget.icon;
           return (
-            <Card key={widget.title} className="shadow-card">
+            <Card
+              key={widget.title}
+              className="shadow-card transition-shadow duration-200 ease-out hover:shadow-card-hover"
+            >
               <CardHeader className="flex flex-row items-start gap-4 space-y-0 pb-2">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-muted">
-                  <Icon className="h-5 w-5 text-muted-foreground" strokeWidth={1.5} />
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/5 ring-1 ring-primary/10">
+                  <Icon className="h-5 w-5 text-primary" strokeWidth={1.5} />
                 </div>
                 <div className="space-y-1">
                   <CardTitle className="text-base">{widget.title}</CardTitle>
@@ -132,8 +135,8 @@ export default async function DashboardPage() {
                 </div>
               </CardHeader>
               <CardContent>
-                <div className="rounded-xl border border-dashed bg-muted/30 px-4 py-8 text-center">
-                  <p className="text-sm text-muted-foreground">{widget.empty}</p>
+                <div className="rounded-xl border border-dashed border-border/60 bg-muted/20 px-4 py-8 text-center">
+                  <p className="text-balance text-sm text-muted-foreground">{widget.empty}</p>
                   <Button asChild variant="ghost" size="sm" className="mt-2">
                     <Link href={widget.href}>
                       {"action" in widget ? widget.action : "Open module"}

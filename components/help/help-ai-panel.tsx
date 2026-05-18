@@ -100,8 +100,8 @@ export function HelpAiPanel() {
             className={cn(
               "rounded-2xl px-4 py-3 text-sm leading-relaxed",
               message.role === "user"
-                ? "ml-auto max-w-[85%] bg-primary text-primary-foreground"
-                : "mr-auto max-w-[90%] border bg-muted/40 text-foreground"
+                ? "ml-auto max-w-[85%] bg-primary text-primary-foreground shadow-sm"
+                : "mr-auto max-w-[90%] border bg-muted/40 text-foreground shadow-sm"
             )}
           >
             {message.content}

@@ -72,8 +72,10 @@ function TabLink({
     <Link
       href={href}
       className={cn(
-        "flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
-        active ? "text-primary" : "text-muted-foreground hover:text-foreground"
+        "relative flex min-w-0 flex-1 flex-col items-center gap-0.5 px-1 py-2 text-[11px] font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-ring",
+        active
+          ? "text-primary before:absolute before:top-1 before:h-1 before:w-8 before:rounded-full before:bg-primary/20"
+          : "text-muted-foreground hover:text-foreground"
       )}
       aria-current={active ? "page" : undefined}
     >
@@ -88,7 +90,7 @@ export function MobileTabBar() {
 
   return (
     <nav
-      className="fixed inset-x-0 bottom-0 z-40 border-t bg-card/95 pb-[env(safe-area-inset-bottom)] backdrop-blur-md lg:hidden"
+      className="fixed inset-x-0 bottom-0 z-40 border-t border-border/70 bg-card/90 pb-[env(safe-area-inset-bottom)] shadow-header backdrop-blur-xl lg:hidden"
       aria-label="Main navigation"
     >
       <div className="flex h-16 items-stretch">

@@ -62,7 +62,7 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               value={query}
               onValueChange={setQuery}
               placeholder="Search, type @, or ask AI: roster Sarah on 13 June…"
-              className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
+              className="flex h-12 w-full rounded-lg bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
           <div className="border-b bg-muted/30 px-4 py-2 text-xs text-muted-foreground">

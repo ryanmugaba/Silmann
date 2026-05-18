@@ -20,7 +20,7 @@ type AuthCardProps = {
 export function AuthWordmark() {
   return (
     <Link href="/" className="group mb-8 flex flex-col items-center gap-1">
-      <span className="font-display text-2xl font-semibold tracking-heading text-foreground">
+      <span className="rounded-2xl bg-foreground px-3 py-1.5 font-display text-2xl font-semibold tracking-heading text-background shadow-card transition-transform duration-200 group-hover:-translate-y-0.5">
         Silman
       </span>
       <span className="text-sm text-muted-foreground">
@@ -39,13 +39,13 @@ export function AuthCard({
   wide = false,
 }: AuthCardProps) {
   return (
-    <div className={cn("w-full", wide ? "max-w-2xl" : "max-w-md")}>
+    <div className={cn("relative w-full", wide ? "max-w-2xl" : "max-w-md")}>
       <AuthWordmark />
-      <Card className={cn("shadow-card", className)}>
+      <Card className={cn("glass-panel shadow-card", className)}>
         <CardHeader className="space-y-1 pb-4">
-          <CardTitle>{title}</CardTitle>
+          <CardTitle className="text-balance">{title}</CardTitle>
           {description ? (
-            <CardDescription>{description}</CardDescription>
+            <CardDescription className="text-balance">{description}</CardDescription>
           ) : null}
         </CardHeader>
         <CardContent>{children}</CardContent>

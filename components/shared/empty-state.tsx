@@ -25,18 +25,19 @@ export function EmptyState({
   return (
     <div
       className={cn(
-        "flex flex-col items-center justify-center rounded-2xl border border-dashed bg-muted/20 px-8 py-16 text-center shadow-card",
+        "relative overflow-hidden flex flex-col items-center justify-center rounded-2xl border border-dashed border-border/70 bg-card/70 px-8 py-16 text-center shadow-card",
         className
       )}
     >
+      <div className="pointer-events-none absolute inset-x-8 top-0 h-24 rounded-full bg-primary/5 blur-2xl" />
       <div
-        className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10"
+        className="relative mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 ring-1 ring-primary/10"
         aria-hidden
       >
         <Icon className="h-8 w-8 text-primary" strokeWidth={1.5} />
       </div>
-      <h3 className="font-display text-lg font-semibold tracking-heading">{title}</h3>
-      <p className="mt-2 max-w-sm text-sm text-muted-foreground">{description}</p>
+      <h3 className="relative font-display text-lg font-semibold tracking-heading text-balance">{title}</h3>
+      <p className="relative mt-2 max-w-sm text-sm text-muted-foreground text-balance">{description}</p>
       {actionLabel && actionHref ? (
         <Button asChild className="mt-6 rounded-xl" size="sm">
           <Link href={actionHref}>{actionLabel}</Link>
