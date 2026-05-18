@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/select";
 import { EmptyState } from "@/components/shared/empty-state";
 import { AnnouncementCard } from "@/components/notice-board/announcement-card";
-import { Can } from "@/lib/primitives/rbac/hooks";
+import { Can, useCan } from "@/lib/primitives/rbac/hooks";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { NOTICE_CATEGORIES, type AnnouncementWithMeta } from "@/types/messaging";
 
@@ -23,6 +23,7 @@ type NoticeBoardClientProps = {
 
 export function NoticeBoardClient({ announcements }: NoticeBoardClientProps) {
   const [category, setCategory] = useState<string>("all");
+  const canPost = useCan(PermissionKey.NOTICE_BOARD_POST);
 
   const filtered = useMemo(() => {
     if (category === "all") return announcements;
@@ -72,8 +73,8 @@ export function NoticeBoardClient({ announcements }: NoticeBoardClientProps) {
           icon={Bell}
           title="No notices yet"
           description="When managers post announcements, they will appear here."
-          actionLabel="Create notice"
-          actionHref="/notice-board/new"
+          actionLabel={canPost ? "Create notice" : undefined}
+          actionHref={canPost ? "/notice-board/new" : undefined}
         />
       ) : (
         <div className="space-y-4">

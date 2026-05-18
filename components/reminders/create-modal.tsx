@@ -20,7 +20,7 @@ import { createReminder } from "@/app/(app)/reminders/actions";
 import { toast } from "sonner";
 
 const RECURRENCE_OPTIONS = [
-  { label: "None", value: "" },
+  { label: "None", value: "__none__" },
   { label: "Daily", value: "FREQ=DAILY" },
   { label: "Weekly", value: "FREQ=WEEKLY" },
   { label: "Monthly", value: "FREQ=MONTHLY" },
@@ -56,9 +56,10 @@ export function CreateReminderModal({
       title,
       description: description || undefined,
       dueAt: new Date(dueAt).toISOString(),
-      recurrenceRule: recurrence || undefined,
+      recurrenceRule:
+        recurrence && recurrence !== "__none__" ? recurrence : undefined,
       assignedTo: assignedTo || undefined,
-      houseId: houseId || undefined,
+      houseId: houseId && houseId !== "__none__" ? houseId : undefined,
     });
     setSubmitting(false);
 
@@ -158,7 +159,7 @@ export function CreateReminderModal({
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent className="rounded-xl">
-                    <SelectItem value="">None</SelectItem>
+                    <SelectItem value="__none__">None</SelectItem>
                     {houses.map((h) => (
                       <SelectItem key={h.id} value={h.id}>
                         {h.name}
