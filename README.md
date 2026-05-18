@@ -115,6 +115,14 @@ API grants, production hardening) are included in the repo; run `db push` or
 | **AI rostering** | Next.js route `/api/ai` on Vercel — set `OPENAI_API_KEY` (no separate `ai-handler` edge function). |
 | **Due reminders** | Vercel cron in `vercel.json` → `/api/cron/reminders-due` (daily ~6am Sydney). |
 
+### AI command bar
+
+Managers can click the top search box or press `⌘K` / `Ctrl+K` and type natural
+language roster commands, for example: `roster Sarah Chen at Parramatta SIL on
+13 June day shift`. Silman AI uses OpenAI tool calling as a translator, fetches
+scoped roster context, then executes server-side roster tools that still enforce
+RBAC, house scope, and rules engine checks.
+
 ## Scripts
 
 | Command | Description |

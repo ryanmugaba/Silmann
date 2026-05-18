@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Loader2, Sparkles } from "lucide-react";
+import { CheckCircle2, Loader2, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -108,7 +108,8 @@ export function AiCommandBar({ query, onClose, className }: AiCommandBarProps) {
       {toolCalls.length > 0 ? (
         <div className="space-y-1 text-xs text-muted-foreground">
           {toolCalls.map((tc, i) => (
-            <p key={i}>
+            <p key={i} className="flex items-center gap-1.5">
+              <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" strokeWidth={1.5} />
               Ran <span className="font-mono text-foreground">{tc.name}</span>
             </p>
           ))}
@@ -125,7 +126,7 @@ export function AiCommandBar({ query, onClose, className }: AiCommandBarProps) {
               Thinking…
             </>
           ) : (
-            "Ask Silman"
+            "Run with Silman AI"
           )}
         </Button>
         {onClose ? (

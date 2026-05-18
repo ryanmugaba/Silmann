@@ -12,9 +12,18 @@ const TOOL_SCHEMAS: Array<{
   parameters: JsonSchema;
 }> = [
   {
+    name: "get_roster_context",
+    description:
+      "Fetch the user's scoped roster context: houses, workers, participants, shift presets, timezone, and today's date. Call this before creating shifts from natural-language names.",
+    parameters: {
+      type: "object",
+      properties: {},
+    },
+  },
+  {
     name: "create_shift",
     description:
-      "Create a roster shift. Evaluates rules engine before saving. Requires house, start, end, and shift type.",
+      "Create a roster shift after resolving natural-language names to IDs. Evaluates rules engine before saving. Requires house, start, end, and shift type.",
     parameters: {
       type: "object",
       properties: {
@@ -37,6 +46,10 @@ const TOOL_SCHEMAS: Array<{
           ],
         },
         ratio: { type: "string", description: "Shift ratio, default 1:1" },
+        notes: {
+          type: "string",
+          description: "Optional note explaining this was created by Silman AI.",
+        },
         override_reason: {
           type: "string",
           description: "Required when confirm-level rules are triggered",
@@ -107,6 +120,7 @@ export const ROSTERING_TOOLS: ChatCompletionTool[] = TOOL_SCHEMAS.map((tool) => 
 }));
 
 export type RosteringToolName =
+  | "get_roster_context"
   | "create_shift"
   | "query_availability"
   | "find_replacement"

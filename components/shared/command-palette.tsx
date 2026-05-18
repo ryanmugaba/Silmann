@@ -57,14 +57,14 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
             <Command.Input
               value={query}
               onValueChange={setQuery}
-              placeholder="Search or type @ for AI…"
+              placeholder="Search or ask AI: roster Sarah on 13 June…"
               className="flex h-12 w-full rounded-md bg-transparent py-3 text-sm outline-none placeholder:text-muted-foreground"
             />
           </div>
           <Command.List className="max-h-80 overflow-y-auto p-2">
             <Command.Empty className="py-6 text-center text-sm text-muted-foreground">
               {isAiQuery
-                ? "Ask Silman AI from the roster or command bar (requires OPENAI_API_KEY)."
+                ? "Ask Silman AI to create shifts, find cover, or check availability."
                 : "No results found."}
             </Command.Empty>
 

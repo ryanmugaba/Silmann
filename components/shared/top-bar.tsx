@@ -89,7 +89,7 @@ export function TopBar({
           <Input
             readOnly
             onClick={() => setCommandOpen(true)}
-            placeholder="Search… (⌘K)"
+            placeholder="Ask AI to roster someone… (⌘K)"
             className="cursor-pointer bg-muted/40 pl-9"
           />
         </div>

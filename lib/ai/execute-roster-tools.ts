@@ -1,9 +1,11 @@
 import { listShiftsInRange, getAvailabilityGrid, getShiftById } from "@/lib/data/roster-queries";
 import { createShift } from "@/app/(app)/roster/actions";
+import { getRosterCommandContext } from "@/lib/ai/roster-context";
 import type { PermissionContext } from "@/lib/primitives/rbac/types";
 import { can } from "@/lib/primitives/rbac/check";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import type { RosteringToolName } from "@/lib/ai/rostering-tools";
+import { isSupabaseConfigured } from "@/lib/supabase/configured";
 
 export async function executeRosterTool(
   name: RosteringToolName,
@@ -11,10 +13,38 @@ export async function executeRosterTool(
   ctx: PermissionContext
 ): Promise<Record<string, unknown>> {
   switch (name) {
+    case "get_roster_context": {
+      if (!can(ctx, PermissionKey.ROSTER_VIEW)) {
+        return { error: "Permission denied: roster:view" };
+      }
+      return await getRosterCommandContext(ctx);
+    }
+
     case "create_shift": {
       if (!can(ctx, PermissionKey.ROSTER_CREATE, { house_id: String(input.house_id) })) {
         return { error: "Permission denied: roster:create" };
       }
+
+      if (!isSupabaseConfigured()) {
+        return {
+          result: {
+            success: true,
+            data: { shiftId: `mock-${Date.now()}` },
+            message: "Demo mode: shift would be created.",
+          },
+          preview: {
+            house_id: input.house_id,
+            participant_id: input.participant_id ?? null,
+            worker_id: input.worker_id ?? null,
+            start: input.start,
+            end: input.end,
+            shift_type: input.shift_type,
+            ratio: input.ratio ?? "1:1",
+            notes: input.notes ?? null,
+          },
+        };
+      }
+
       const fd = new FormData();
       fd.set("houseId", String(input.house_id));
       if (input.participant_id) fd.set("participantId", String(input.participant_id));
@@ -23,6 +53,7 @@ export async function executeRosterTool(
       fd.set("endAt", String(input.end));
       fd.set("shiftType", String(input.shift_type));
       if (input.ratio) fd.set("ratio", String(input.ratio));
+      if (input.notes) fd.set("notes", String(input.notes));
       if (input.override_reason) fd.set("overrideReason", String(input.override_reason));
       const result = await createShift(fd);
       return { result };
