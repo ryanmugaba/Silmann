@@ -29,7 +29,13 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const publicRoutes = ["/", "/privacy", "/terms", "/auth/callback"];
+  const publicRoutes = [
+    "/",
+    "/privacy",
+    "/terms",
+    "/auth/callback",
+    "/api/cron/reminders-due",
+  ];
   const isAuthRoute =
     request.nextUrl.pathname.startsWith("/login") ||
     request.nextUrl.pathname.startsWith("/signup") ||

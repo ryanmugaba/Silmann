@@ -44,7 +44,7 @@ export default function TermsPage() {
         </h2>
         <p>
           You must not misuse the service, attempt to bypass access controls, upload
-          unlawful content, or use Silman for purposes outside your organisation's SIL
+          unlawful content, or use Silman for purposes outside your organisation&apos;s SIL
           operations and care coordination responsibilities.
         </p>
         <p className="text-xs text-muted-foreground">
