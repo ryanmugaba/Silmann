@@ -93,4 +93,90 @@ describe("executeRosterTool", () => {
 
     expect(result).toEqual({ error: "Permission denied: roster:view" });
   });
+
+  it("lists prompt capabilities without exposing settings mutations", async () => {
+    const result = await executeRosterTool(
+      "get_app_capabilities",
+      {},
+      managerContext
+    );
+
+    expect(result.settings_mutations).toBe("excluded");
+    expect(result.tools).toEqual(
+      expect.arrayContaining([
+        "create roster shifts",
+        "create, complete, and snooze reminders",
+        "post notice board announcements",
+        "invite support workers",
+        "create participant intake records",
+      ])
+    );
+  });
+
+  it("returns app navigation paths from prompts", async () => {
+    const result = await executeRosterTool(
+      "navigate_app",
+      { destination: "reminders" },
+      managerContext
+    );
+
+    expect(result).toEqual({ path: "/reminders" });
+  });
+
+  it("creates mock reminders from prompt inputs", async () => {
+    const result = await executeRosterTool(
+      "create_reminder",
+      {
+        title: "Review Alex plan",
+        due_at: "2026-06-13T09:00:00+10:00",
+        category: "participant",
+      },
+      managerContext
+    );
+
+    expect(result.result).toEqual(
+      expect.objectContaining({
+        success: true,
+        message: "Demo mode: reminder would be created.",
+      })
+    );
+  });
+
+  it("requires an audience before posting notices unless broadcast is explicit", async () => {
+    const result = await executeRosterTool(
+      "create_notice",
+      {
+        title: "Fire drill",
+        content: "Fire drill at 2pm.",
+      },
+      managerContext
+    );
+
+    expect(result).toEqual({
+      error:
+        "Notice audience is required. Ask who should receive it, or confirm this is for everyone.",
+    });
+  });
+
+  it("creates participant intake records in demo mode when required fields are present", async () => {
+    const result = await executeRosterTool(
+      "create_participant",
+      {
+        full_name: "Mia Parker",
+        ndis_number: "43012345679",
+        house_id: "10000000-0000-4000-8000-000000000001",
+        emergency_contact_name: "John Parker",
+        emergency_contact_relationship: "Father",
+        emergency_contact_phone: "0400000000",
+      },
+      managerContext
+    );
+
+    expect(result.result).toEqual(
+      expect.objectContaining({
+        success: true,
+        message: "Demo mode: participant would be created.",
+      })
+    );
+  });
 });

@@ -118,10 +118,12 @@ API grants, production hardening) are included in the repo; run `db push` or
 ### AI command bar
 
 Managers can click the top search box or press `⌘K` / `Ctrl+K` and type natural
-language roster commands, for example: `roster Sarah Chen at Parramatta SIL on
-13 June day shift`. Silman AI uses OpenAI tool calling as a translator, fetches
-scoped roster context, then executes server-side roster tools that still enforce
-RBAC, house scope, and rules engine checks.
+language operational commands, for example: `roster Sarah Chen at Parramatta SIL
+on 13 June day shift`, `remind me to review Alex's plan tomorrow`, or `post an
+urgent notice to Parramatta SIL`. Silman AI uses OpenAI tool calling as a
+translator, fetches scoped context, then executes server-side tools that still
+enforce RBAC, house scope, validation, and rules engine checks. Settings and
+administration configuration remain manual by design.
 
 ## Scripts
 
