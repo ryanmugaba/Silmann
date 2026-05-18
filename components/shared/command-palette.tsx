@@ -132,6 +132,12 @@ export function CommandPalette({ open, onOpenChange }: CommandPaletteProps) {
               >
                 Settings
               </Command.Item>
+              <Command.Item
+                className="flex cursor-pointer rounded-xl px-3 py-2.5 text-sm aria-selected:bg-accent"
+                onSelect={() => run("/help")}
+              >
+                Help
+              </Command.Item>
             </Command.Group>
 
             <Command.Group heading="Recent">

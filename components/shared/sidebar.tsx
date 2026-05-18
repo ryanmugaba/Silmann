@@ -10,6 +10,7 @@ import {
   ClipboardList,
   Clock,
   ClipboardCheck,
+  CircleHelp,
   LayoutDashboard,
   MessageSquare,
   PanelLeftClose,
@@ -80,6 +81,11 @@ const NAV_ITEMS: NavItem[] = [
     label: "Reports",
     icon: BarChart3,
     permission: PermissionKey.REPORT_VIEW,
+  },
+  {
+    href: "/help",
+    label: "Help",
+    icon: CircleHelp,
   },
   {
     href: "/settings",

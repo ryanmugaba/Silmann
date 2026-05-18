@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import {
   Calendar,
   Clock,
+  CircleHelp,
   LayoutDashboard,
   Menu,
   MessageSquare,
@@ -50,6 +51,10 @@ const MORE_LINKS = [
   { href: "/notice-board", label: "Notice board", permission: PermissionKey.NOTICE_BOARD_VIEW },
   { href: "/my-compliance", label: "My compliance", permission: PermissionKey.COMPLIANCE_SUBMIT },
   { href: "/settings", label: "Settings", permission: PermissionKey.SETTINGS_VIEW },
+];
+
+const ALWAYS_LINKS = [
+  { href: "/help", label: "Help", icon: CircleHelp },
 ];
 
 function TabLink({
@@ -139,6 +144,20 @@ export function MobileTabBar() {
                     </Can>
                   </li>
                 ))}
+                {ALWAYS_LINKS.map((item) => {
+                  const Icon = item.icon;
+                  return (
+                    <li key={item.href}>
+                      <Link
+                        href={item.href}
+                        className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted"
+                      >
+                        <Icon className="h-4 w-4" strokeWidth={1.5} />
+                        {item.label}
+                      </Link>
+                    </li>
+                  );
+                })}
               </ul>
             </ScrollArea>
           </DrawerContent>
