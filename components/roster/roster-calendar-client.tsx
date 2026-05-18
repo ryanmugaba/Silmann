@@ -61,6 +61,7 @@ export type RosterCalendarClientProps = {
   availabilityCells: WorkerAvailabilityCell[];
   houses: HouseOption[];
   isMock?: boolean;
+  initialCreateOpen?: boolean;
 };
 
 function toCalendarEvent(shift: ShiftRecord) {
@@ -92,6 +93,7 @@ export function RosterCalendarClient({
   availabilityCells,
   houses,
   isMock: initialMock,
+  initialCreateOpen = false,
 }: RosterCalendarClientProps) {
   const calendarRef = useRef<FullCalendar>(null);
   const { activeHouseId } = useHouse();
@@ -110,7 +112,7 @@ export function RosterCalendarClient({
   const [datePickerOpen, setDatePickerOpen] = useState(false);
   const [jumpDate, setJumpDate] = useState("");
 
-  const [createOpen, setCreateOpen] = useState(false);
+  const [createOpen, setCreateOpen] = useState(initialCreateOpen);
   const [createDefaults, setCreateDefaults] = useState<ShiftCreateDefaults>();
   const [selectedShift, setSelectedShift] = useState<ShiftRecord | null>(null);
   const [detailOpen, setDetailOpen] = useState(false);
@@ -119,6 +121,13 @@ export function RosterCalendarClient({
   useEffect(() => {
     setShifts(initialShifts);
   }, [initialShifts]);
+
+  useEffect(() => {
+    if (initialCreateOpen) {
+      setCreateDefaults({ houseId: activeHouseId ?? houses[0]?.id });
+      setCreateOpen(true);
+    }
+  }, [activeHouseId, houses, initialCreateOpen]);
 
   const workerOptions = useMemo(() => {
     const map = new Map<string, string>();
@@ -641,12 +650,14 @@ export function RosterCalendarClient({
         onEdit={(shift) => {
           setDetailOpen(false);
           setCreateDefaults({
+            shiftId: shift.id,
             houseId: shift.houseId,
             workerId: shift.workerId ?? undefined,
             participantId: shift.participantId ?? undefined,
             startAt: new Date(shift.startAt),
             endAt: new Date(shift.endAt),
             shiftType: shift.shiftType,
+            notes: shift.notes,
           });
           setCreateOpen(true);
         }}

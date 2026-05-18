@@ -10,7 +10,11 @@ import {
 import { RosterCalendarClient } from "@/components/roster/roster-calendar-client";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function RosterPage() {
+export default async function RosterPage({
+  searchParams,
+}: {
+  searchParams?: { action?: string };
+}) {
   const ctx = await getPermissionContext();
   if (!can(ctx, PermissionKey.ROSTER_VIEW)) {
     redirect("/dashboard");
@@ -64,6 +68,7 @@ export default async function RosterPage() {
         availabilityCells={cells}
         houses={houses}
         isMock={shiftsMock || availMock}
+        initialCreateOpen={searchParams?.action === "create-shift"}
       />
     </div>
   );

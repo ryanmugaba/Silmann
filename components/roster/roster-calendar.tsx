@@ -203,11 +203,13 @@ export function RosterCalendar({
         onOpenChange={setDetailOpen}
         onEdit={(s) => {
           setCreateDefaults({
+            shiftId: s.id,
             houseId: s.houseId,
             workerId: s.workerId ?? undefined,
             startAt: new Date(s.startAt),
             endAt: new Date(s.endAt),
             shiftType: s.shiftType,
+            notes: s.notes,
           });
           setCreateOpen(true);
         }}

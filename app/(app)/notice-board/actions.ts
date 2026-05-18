@@ -90,6 +90,23 @@ export async function createAnnouncement(
   const parsed = createAnnouncementSchema.parse(input);
 
   return withPermission(PermissionKey.NOTICE_BOARD_POST, async (ctx) => {
+    let audience = (parsed.targetAudience ?? {}) as TargetAudienceInput;
+    const hasAudienceFilter =
+      (audience.roles?.length ?? 0) > 0 ||
+      (audience.houses?.length ?? 0) > 0 ||
+      (audience.userIds?.length ?? 0) > 0;
+    if (ctx.role !== "owner" && ctx.house_ids.length > 0 && !hasAudienceFilter) {
+      audience = { ...audience, houses: ctx.house_ids };
+    }
+    const requestedHouses = audience.houses ?? [];
+    if (
+      ctx.role !== "owner" &&
+      ctx.house_ids.length > 0 &&
+      requestedHouses.some((houseId) => !ctx.house_ids.includes(houseId))
+    ) {
+      return { error: "You do not have access to one or more target houses" };
+    }
+
     const supabase = await createClient();
 
     const { data: channel } = await supabase
@@ -156,7 +173,6 @@ export async function createAnnouncement(
       return { error: annError.message };
     }
 
-    const audience = (parsed.targetAudience ?? {}) as TargetAudienceInput;
     const recipientIds = await resolveAudienceUserIds(
       ctx.organization_id,
       audience

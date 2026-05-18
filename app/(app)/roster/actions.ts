@@ -19,8 +19,10 @@ import {
   createShiftSchema,
   shiftSwapRequestSchema,
   submitAvailabilitySchema,
+  updateShiftSchema,
   updateShiftTimesSchema,
 } from "@/lib/validators/roster";
+import type { Database, ShiftRow } from "@/types/database";
 
 function buildShiftRuleContext(
   organizationId: string,
@@ -312,6 +314,10 @@ export async function evaluateShiftRules(formData: FormData) {
       return actionError("Invalid input", zodFieldErrors(parsed.error));
     }
 
+    if (ctx.house_ids.length > 0 && !ctx.house_ids.includes(parsed.data.houseId)) {
+      return actionError("You do not have access to this house");
+    }
+
     const ruleContext = buildShiftRuleContext(ctx.organization_id, parsed.data);
     const result = await evaluate(ruleContext);
 
@@ -321,6 +327,118 @@ export async function evaluateShiftRules(formData: FormData) {
       confirms: result.confirms.map((r) => ({ id: r.id, message: r.message })),
       informs: result.informs.map((r) => ({ id: r.id, message: r.message })),
     });
+  });
+}
+
+export async function updateShift(formData: FormData) {
+  return withPermission(PermissionKey.ROSTER_EDIT, async (ctx) => {
+    const parsed = updateShiftSchema.safeParse({
+      shiftId: formData.get("shiftId"),
+      houseId: formData.get("houseId") || undefined,
+      participantId:
+        formData.has("participantId") ? formData.get("participantId") || null : undefined,
+      workerId:
+        formData.has("workerId") ? formData.get("workerId") || null : undefined,
+      startAt: formData.get("startAt") || undefined,
+      endAt: formData.get("endAt") || undefined,
+      shiftType: formData.get("shiftType") || undefined,
+      ratio: formData.get("ratio") || undefined,
+      notes: formData.has("notes") ? formData.get("notes") || "" : undefined,
+      overrideReason: formData.get("overrideReason") || undefined,
+    });
+
+    if (!parsed.success) {
+      return actionError("Invalid input", zodFieldErrors(parsed.error));
+    }
+
+    if (!isSupabaseConfigured()) {
+      revalidatePath("/roster");
+      return actionSuccess(undefined, "Demo mode: shift updated.");
+    }
+
+    const supabase = await createClient();
+    const { data: existing, error: fetchError } = await supabase
+      .from("shifts")
+      .select("*")
+      .eq("id", parsed.data.shiftId)
+      .eq("organization_id", ctx.organization_id)
+      .is("deleted_at", null)
+      .single<ShiftRow>();
+
+    if (fetchError || !existing) {
+      return actionError("Shift not found");
+    }
+
+    const nextHouseId = parsed.data.houseId ?? existing.house_id;
+    if (ctx.house_ids.length > 0 && !ctx.house_ids.includes(nextHouseId)) {
+      return actionError("You do not have access to this house");
+    }
+
+    const ruleInput = {
+      houseId: nextHouseId,
+      participantId:
+        parsed.data.participantId !== undefined
+          ? parsed.data.participantId
+          : existing.participant_id,
+      workerId:
+        parsed.data.workerId !== undefined
+          ? parsed.data.workerId
+          : existing.worker_id,
+      startAt: parsed.data.startAt ?? existing.start_at,
+      endAt: parsed.data.endAt ?? existing.end_at,
+      shiftType: parsed.data.shiftType ?? existing.shift_type,
+      ratio: parsed.data.ratio ?? existing.ratio,
+    };
+
+    const execute = async () => {
+      const patch: Database["public"]["Tables"]["shifts"]["Update"] = {
+        house_id: nextHouseId,
+        participant_id: ruleInput.participantId ?? null,
+        worker_id: ruleInput.workerId ?? null,
+        start_at: ruleInput.startAt,
+        end_at: ruleInput.endAt,
+        shift_type: ruleInput.shiftType,
+        ratio: ruleInput.ratio,
+        status: ruleInput.workerId ? "confirmed" : "unfilled",
+        updated_by: ctx.user_id,
+      };
+
+      if (parsed.data.notes !== undefined) {
+        patch.notes = parsed.data.notes || null;
+      }
+
+      const { error } = await supabase
+        .from("shifts")
+        .update(patch)
+        .eq("id", parsed.data.shiftId)
+        .eq("organization_id", ctx.organization_id);
+
+      if (error) throw new Error(error.message);
+    };
+
+    try {
+      await attemptActionWithRules(
+        buildShiftRuleContext(ctx.organization_id, ruleInput),
+        execute,
+        {
+          user_id: ctx.user_id,
+          override_reason: parsed.data.overrideReason,
+        }
+      );
+
+      revalidatePath("/roster");
+      return actionSuccess(undefined, "Shift updated");
+    } catch (e) {
+      if (e instanceof RulesBlockedError) {
+        return actionError(e.result.blocks.map((r) => r.message).join(" "));
+      }
+      if (e instanceof RequiresConfirmationError) {
+        return actionError("CONFIRMATION_REQUIRED", {
+          _form: e.result.confirms.map((r) => r.message),
+        });
+      }
+      throw e;
+    }
   });
 }
 
@@ -345,20 +463,65 @@ export async function updateShiftTimes(formData: FormData) {
       }
 
       const supabase = await createClient();
-      const { error } = await supabase
+      const { data: existing, error: fetchError } = await supabase
         .from("shifts")
-        .update({
-          start_at: parsed.data.startAt,
-          end_at: parsed.data.endAt,
-          updated_by: ctx.user_id,
-        })
+        .select("*")
         .eq("id", parsed.data.shiftId)
-        .eq("organization_id", ctx.organization_id);
+        .eq("organization_id", ctx.organization_id)
+        .is("deleted_at", null)
+        .single<ShiftRow>();
 
-      if (error) return actionError(error.message);
+      if (fetchError || !existing) {
+        return actionError("Shift not found");
+      }
 
-      revalidatePath("/roster");
-      return actionSuccess(undefined, "Shift updated");
+      if (ctx.house_ids.length > 0 && !ctx.house_ids.includes(existing.house_id)) {
+        return actionError("You do not have access to this house");
+      }
+
+      const ruleContext = buildShiftRuleContext(ctx.organization_id, {
+        houseId: existing.house_id,
+        participantId: existing.participant_id,
+        workerId: existing.worker_id,
+        startAt: parsed.data.startAt,
+        endAt: parsed.data.endAt,
+        shiftType: existing.shift_type,
+        ratio: existing.ratio,
+      });
+
+      const execute = async () => {
+        const { error } = await supabase
+          .from("shifts")
+          .update({
+            start_at: parsed.data.startAt,
+            end_at: parsed.data.endAt,
+            updated_by: ctx.user_id,
+          })
+          .eq("id", parsed.data.shiftId)
+          .eq("organization_id", ctx.organization_id);
+
+        if (error) throw new Error(error.message);
+      };
+
+      try {
+        await attemptActionWithRules(ruleContext, execute, {
+          user_id: ctx.user_id,
+          override_reason: parsed.data.overrideReason,
+        });
+
+        revalidatePath("/roster");
+        return actionSuccess(undefined, "Shift updated");
+      } catch (e) {
+        if (e instanceof RulesBlockedError) {
+          return actionError(e.result.blocks.map((r) => r.message).join(" "));
+        }
+        if (e instanceof RequiresConfirmationError) {
+          return actionError("CONFIRMATION_REQUIRED", {
+            _form: e.result.confirms.map((r) => r.message),
+          });
+        }
+        throw e;
+      }
     }
   );
 }
@@ -380,11 +543,25 @@ export async function cancelShift(formData: FormData) {
     }
 
     const supabase = await createClient();
+    const { data: existing } = await supabase
+      .from("shifts")
+      .select("notes")
+      .eq("id", parsed.data.shiftId)
+      .eq("organization_id", ctx.organization_id)
+      .single<{ notes: string | null }>();
+
+    const cancelNote = parsed.data.reason
+      ? [
+          existing?.notes?.trim(),
+          `Cancelled: ${parsed.data.reason}`,
+        ].filter(Boolean).join("\n\n")
+      : existing?.notes ?? null;
+
     const { error } = await supabase
       .from("shifts")
       .update({
         status: "cancelled",
-        notes: parsed.data.reason ?? null,
+        notes: cancelNote,
         updated_by: ctx.user_id,
       })
       .eq("id", parsed.data.shiftId)

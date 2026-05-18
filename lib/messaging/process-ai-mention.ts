@@ -60,7 +60,14 @@ Answer concisely. Use roster tools when the user asks about shifts, availability
       try {
         input = JSON.parse(call.function.arguments) as Record<string, unknown>;
       } catch {
-        input = {};
+        messages.push({
+          role: "tool",
+          tool_call_id: call.id,
+          content: JSON.stringify({
+            error: "Invalid tool arguments. Ask the user to rephrase the request.",
+          }),
+        });
+        continue;
       }
       const result = await executeRosterTool(name, input, ctx);
       messages.push({

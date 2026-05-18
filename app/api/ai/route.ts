@@ -136,7 +136,15 @@ async function runToolCall(
   try {
     input = JSON.parse(call.function.arguments) as Record<string, unknown>;
   } catch {
-    input = {};
+    const result = {
+      error: "Invalid tool arguments. Ask the user to rephrase the request.",
+    };
+    toolCallsLog.push({ name, input: call.function.arguments, result });
+    return {
+      role: "tool",
+      tool_call_id: call.id,
+      content: JSON.stringify(result),
+    };
   }
 
   const result = await executeRosterTool(name, input, ctx);

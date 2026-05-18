@@ -20,6 +20,14 @@ export async function createReminder(input: z.infer<typeof createReminderSchema>
   const parsed = createReminderSchema.parse(input);
 
   return withPermission(PermissionKey.REMINDER_EDIT, async (ctx) => {
+    if (
+      parsed.houseId &&
+      ctx.house_ids.length > 0 &&
+      !ctx.house_ids.includes(parsed.houseId)
+    ) {
+      return { error: "You do not have access to this house" };
+    }
+
     const supabase = await createClient();
 
     const { error } = await supabase.from("reminders").insert({

@@ -179,14 +179,6 @@ export function ShiftDetailPanel({
               </Button>
               <Button
                 size="sm"
-                variant="outline"
-                onClick={handleSwap}
-                disabled={pending}
-              >
-                Request swap
-              </Button>
-              <Button
-                size="sm"
                 variant="destructive"
                 onClick={handleCancel}
                 disabled={pending}

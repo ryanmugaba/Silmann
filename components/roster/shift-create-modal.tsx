@@ -7,6 +7,7 @@ import {
   createShift,
   evaluateShiftRules,
   getRosterFormOptions,
+  updateShift,
 } from "@/app/(app)/roster/actions";
 import { RuleConfirmationModal } from "@/components/shared/rule-confirmation-modal";
 import { ResponsiveDialog } from "@/components/shared/responsive-dialog";
@@ -32,12 +33,14 @@ const SHIFT_PRESETS = [
 ];
 
 export type ShiftCreateDefaults = {
+  shiftId?: string;
   houseId?: string;
   workerId?: string;
   participantId?: string;
   startAt?: Date;
   endAt?: Date;
   shiftType?: ShiftType;
+  notes?: string | null;
 };
 
 type HouseOption = { id: string; name: string };
@@ -70,6 +73,7 @@ export function ShiftCreateModal({
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [blockMessages, setBlockMessages] = useState<string[]>([]);
   const [pending, startTransition] = useTransition();
+  const isEditing = Boolean(defaults?.shiftId);
 
   const durationMinutes =
     startAt && endAt
@@ -104,6 +108,7 @@ export function ShiftCreateModal({
     setEndAt(format(end, "yyyy-MM-dd'T'HH:mm"));
     setBlockMessages([]);
     setConfirmRules([]);
+    setNotes(defaults?.notes ?? "");
   }, [open, defaults, houses]);
 
   useEffect(() => {
@@ -118,6 +123,7 @@ export function ShiftCreateModal({
 
   const submitWithReason = (overrideReason?: string) => {
     const fd = new FormData();
+    if (defaults?.shiftId) fd.set("shiftId", defaults.shiftId);
     fd.set("houseId", houseId);
     if (participantId) fd.set("participantId", participantId);
     if (workerId) fd.set("workerId", workerId);
@@ -128,9 +134,9 @@ export function ShiftCreateModal({
     if (overrideReason) fd.set("overrideReason", overrideReason);
 
     startTransition(async () => {
-      const result = await createShift(fd);
+      const result = defaults?.shiftId ? await updateShift(fd) : await createShift(fd);
       if (result.success) {
-        toast.success(result.message ?? "Shift created");
+        toast.success(result.message ?? (defaults?.shiftId ? "Shift updated" : "Shift created"));
         onOpenChange(false);
         onCreated?.();
         return;
@@ -213,11 +219,12 @@ export function ShiftCreateModal({
       <ResponsiveDialog
         open={open}
         onOpenChange={onOpenChange}
-        title="Create shift"
+        title={isEditing ? "Edit shift" : "Create shift"}
         className="max-w-lg"
       >
         <p className="text-sm text-muted-foreground -mt-2 mb-4">
-          Shifts are evaluated against care and rostering rules before saving.
+          {isEditing ? "Changes" : "Shifts"} are evaluated against care and
+          rostering rules before saving.
         </p>
         <div className="mb-4 flex flex-wrap gap-2">
           {SHIFT_PRESETS.map((preset) => (
@@ -369,7 +376,13 @@ export function ShiftCreateModal({
                 Cancel
               </Button>
               <Button type="submit" disabled={pending}>
-                {pending ? "Creating…" : "Create shift"}
+                {pending
+                  ? isEditing
+                    ? "Saving…"
+                    : "Creating…"
+                  : isEditing
+                    ? "Save changes"
+                    : "Create shift"}
               </Button>
             </div>
         </form>
