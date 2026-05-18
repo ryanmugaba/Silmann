@@ -1,0 +1,61 @@
+You are building SILMAN — an NDIS Supported Independent Living (SIL) management web app for the Australian NDIS sector.
+
+PRODUCT PRINCIPLES:
+- Manager-heavy product. Workers get a thin client (4 screens max).
+- Desktop-first, mobile-responsive. Not a native app. Not a PWA in v1.
+- Apple-grade UI: soft, rounded, generous whitespace, layered shadows, premium feel.
+- All data resides in AWS Sydney region (Supabase Sydney). NDIS requires Australian data residency.
+- Audit-grade logging. Every meaningful action is logged with user, timestamp, before/after state.
+
+TECH STACK (do not deviate):
+- Next.js 14, App Router, TypeScript, React Server Components where sensible
+- Tailwind CSS with custom radii: buttons rounded-xl (12px), cards rounded-2xl (16px), modals rounded-3xl (20px), inputs rounded-lg (10px)
+- shadcn/ui as the component foundation, customised
+- Supabase: Postgres, Auth, Storage, Row-Level Security, Edge Functions
+- OpenAI API (ChatGPT) for AI features with tool use (default model: gpt-4o-mini)
+- FullCalendar for roster views
+- Framer Motion for animations (200ms ease-out defaults)
+- Lucide icons, stroke width 1.5, no other icon families
+- Inter font for body, Inter Display for headings
+- Deployed on Vercel
+
+DESIGN RULES:
+- Base font 15px not 14px
+- Headings letter-spacing -0.01em
+- Two-layer shadows: 0 1px 2px rgba(0,0,0,0.04), 0 4px 12px rgba(0,0,0,0.06)
+- Skeleton loading states, never spinners
+- Empty states are illustrated and helpful
+- Every interactive element has hover, focus, active, disabled states
+- Animations: 200ms ease-out for modals, 150ms for sidebar, spring physics for drag
+
+ARCHITECTURAL RULES (non-negotiable):
+- Build three platform primitives FIRST: RBAC + house-scoped RLS, Countdown Engine, Rules Engine
+- All features depend on primitives. Never bolt logic into individual features.
+- Multi-tenancy at the org level. Multiple orgs share infrastructure, never share data.
+- House-scoping at the user level. Users assigned to specific houses see only that data.
+- Every entity has created_at, updated_at, created_by, updated_by, deleted_at (soft deletes only — NDIS audits require historical data).
+- Every permission change, data edit, login, role assignment is logged to audit_log table.
+
+ROLE HIERARCHY:
+1. Owner — full access, billing, can create custom roles
+2. Team Leader — house-scoped, manages participants/workers/operations
+3. Roster Coordinator — house-scoped, edits rosters only
+4. Support Worker — sees own shifts, own availability, notice board, own profile only
+5. Read-Only / Auditor — view scoped data, edit nothing
+
+DO NOT BUILD IN V1:
+- Native mobile apps
+- Voice/video calls inside the app
+- NDIS portal integration (PRODA API) — phase 2
+- Multi-vertical support (sole trader, support coord modules) — phase 2
+- Worker-to-worker DMs across different houses
+- Hard deletes anywhere
+
+CODE STYLE:
+- TypeScript strict mode
+- Zod for runtime validation on all API inputs
+- Server Actions for mutations, RSC for reads
+- No `any` types
+- Co-locate components by feature in /app/(modules)/[module-name]/
+- Shared UI in /components/ui/
+- Database types auto-generated from Supabase schema

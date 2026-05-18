@@ -1,0 +1,166 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 99%;
+    --foreground: 0 0% 9%;
+    --card: 0 0% 100%;
+    --card-foreground: 0 0% 9%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 9%;
+    --primary: 221 83% 53%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 96%;
+    --secondary-foreground: 0 0% 9%;
+    --muted: 0 0% 96%;
+    --muted-foreground: 0 0% 45%;
+    --accent: 221 83% 97%;
+    --accent-foreground: 221 83% 40%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 0 0% 9%;
+    --danger: 0 72% 51%;
+    --danger-foreground: 0 0% 100%;
+    --border: 0 0% 90%;
+    --input: 0 0% 90%;
+    --ring: 221 83% 53%;
+    --radius: 0.625rem;
+    --sidebar-width: 240px;
+    --sidebar-collapsed-width: 64px;
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.04);
+    --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.06);
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.04), 0 4px 12px rgba(0, 0, 0, 0.06);
+    --density-padding: 1rem;
+    --density-gap: 0.75rem;
+  }
+
+  html[data-density="compact"] {
+    --density-padding: 0.75rem;
+    --density-gap: 0.5rem;
+    font-size: 14px;
+  }
+
+  html[data-density="spacious"] {
+    --density-padding: 1.25rem;
+    --density-gap: 1rem;
+    font-size: 16px;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.01ms !important;
+      scroll-behavior: auto !important;
+    }
+  }
+
+  .dark {
+    --background: 0 0% 7%;
+    --foreground: 0 0% 98%;
+    --card: 0 0% 10%;
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 10%;
+    --popover-foreground: 0 0% 98%;
+    --primary: 221 83% 58%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 0 0% 15%;
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 15%;
+    --muted-foreground: 0 0% 64%;
+    --accent: 221 40% 18%;
+    --accent-foreground: 221 83% 75%;
+    --destructive: 0 62% 50%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 0 0% 18%;
+    --input: 0 0% 18%;
+    --ring: 221 83% 58%;
+  }
+
+  * {
+    @apply border-border;
+  }
+
+  html {
+    font-size: 15px;
+  }
+
+  body {
+    @apply bg-background text-foreground font-sans antialiased;
+    font-feature-settings: "rlig" 1, "calt" 1;
+    padding-bottom: env(safe-area-inset-bottom, 0);
+  }
+
+  @media (max-width: 1023px) {
+    body {
+      padding-bottom: calc(4rem + env(safe-area-inset-bottom, 0));
+    }
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  h5,
+  h6 {
+    @apply font-display tracking-heading;
+  }
+}
+
+@layer utilities {
+  .shadow-card {
+    box-shadow: var(--shadow-card);
+  }
+
+  .text-balance {
+    text-wrap: balance;
+  }
+}
+
+/* FullCalendar v6 — styles not bundled with packages */
+@layer components {
+  .fc {
+    --fc-border-color: hsl(var(--border));
+    --fc-button-bg-color: hsl(var(--secondary));
+    --fc-button-border-color: hsl(var(--border));
+    --fc-button-text-color: hsl(var(--foreground));
+    --fc-button-hover-bg-color: hsl(var(--muted));
+    --fc-button-hover-border-color: hsl(var(--border));
+    --fc-button-active-bg-color: hsl(var(--accent));
+    --fc-today-bg-color: hsl(var(--accent) / 0.35);
+    --fc-event-border-color: transparent;
+    --fc-page-bg-color: transparent;
+    font-family: inherit;
+  }
+
+  .fc .fc-col-header-cell-cushion,
+  .fc .fc-daygrid-day-number,
+  .fc .fc-timegrid-slot-label-cushion {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.8125rem;
+    font-weight: 500;
+  }
+
+  .fc .fc-timegrid-slot {
+    height: 2.5rem;
+  }
+
+  .fc .fc-event {
+    border-radius: 0.5rem;
+    padding: 2px 6px;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    cursor: pointer;
+  }
+
+  .fc .fc-event-title {
+    font-weight: 500;
+  }
+}

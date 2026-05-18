@@ -1,0 +1,176 @@
+import type {
+  ComplianceDocument,
+  WorkerDetail,
+  WorkerListItem,
+} from "@/lib/types/workers";
+
+const MOCK_ORG = "00000000-0000-4000-8000-000000000001";
+const MOCK_HOUSE_1 = "10000000-0000-4000-8000-000000000001";
+const MOCK_HOUSE_2 = "10000000-0000-4000-8000-000000000002";
+
+export const MOCK_WORKERS: WorkerListItem[] = [
+  {
+    id: "w1",
+    profileId: "p1",
+    fullName: "Sarah Chen",
+    email: "sarah.chen@example.com",
+    avatarUrl: null,
+    role: "support_worker",
+    employmentType: "part_time",
+    status: "active",
+    houseNames: ["Parramatta SIL"],
+    complianceSummary: "compliant",
+    pendingDocCount: 0,
+  },
+  {
+    id: "w2",
+    profileId: "p2",
+    fullName: "James O'Brien",
+    email: "james.obrien@example.com",
+    avatarUrl: null,
+    role: "support_worker",
+    employmentType: "casual",
+    status: "active",
+    houseNames: ["Parramatta SIL", "Blacktown SIL"],
+    complianceSummary: "expiring",
+    pendingDocCount: 1,
+  },
+  {
+    id: "w3",
+    profileId: "p3",
+    fullName: "Amelia Torres",
+    email: "amelia.torres@example.com",
+    avatarUrl: null,
+    role: "support_worker",
+    employmentType: "full_time",
+    status: "onboarding",
+    houseNames: ["Blacktown SIL"],
+    complianceSummary: "non_compliant",
+    pendingDocCount: 3,
+  },
+];
+
+export const MOCK_COMPLIANCE_DOCS: ComplianceDocument[] = [
+  {
+    id: "cd1",
+    workerId: "w1",
+    organizationId: MOCK_ORG,
+    docType: "ndis_worker_screening",
+    docName: "NDIS Worker Screening",
+    fileUrl: null,
+    issuedDate: "2024-01-15",
+    expiryDate: "2027-01-15",
+    issuingBody: "NDIS Commission",
+    documentNumber: "NWS-12345",
+    status: "approved",
+    rejectedReason: null,
+    approvedBy: null,
+    approvedAt: "2024-01-20T10:00:00Z",
+    submittedAt: "2024-01-16T09:00:00Z",
+  },
+  {
+    id: "cd2",
+    workerId: "w2",
+    organizationId: MOCK_ORG,
+    docType: "first_aid_cpr",
+    docName: "First Aid / CPR",
+    fileUrl: null,
+    issuedDate: "2024-06-01",
+    expiryDate: "2026-06-01",
+    issuingBody: "St John",
+    documentNumber: null,
+    status: "approved",
+    rejectedReason: null,
+    approvedBy: null,
+    approvedAt: "2024-06-05T10:00:00Z",
+    submittedAt: "2024-06-02T09:00:00Z",
+  },
+  {
+    id: "cd3",
+    workerId: "w2",
+    organizationId: MOCK_ORG,
+    docType: "wwcc",
+    docName: "WWCC",
+    fileUrl: null,
+    issuedDate: "2025-01-01",
+    expiryDate: "2026-05-20",
+    issuingBody: "Service NSW",
+    documentNumber: "WWC-9988",
+    status: "pending_approval",
+    rejectedReason: null,
+    approvedBy: null,
+    approvedAt: null,
+    submittedAt: "2026-05-10T14:00:00Z",
+  },
+  {
+    id: "cd4",
+    workerId: "w3",
+    organizationId: MOCK_ORG,
+    docType: "ndis_worker_screening",
+    docName: "NDIS Worker Screening",
+    fileUrl: null,
+    issuedDate: null,
+    expiryDate: "2025-12-01",
+    issuingBody: null,
+    documentNumber: null,
+    status: "expired",
+    rejectedReason: null,
+    approvedBy: null,
+    approvedAt: null,
+    submittedAt: "2025-11-01T09:00:00Z",
+  },
+  {
+    id: "cd5",
+    workerId: "w3",
+    organizationId: MOCK_ORG,
+    docType: "first_aid_cpr",
+    docName: "First Aid / CPR",
+    fileUrl: null,
+    issuedDate: null,
+    expiryDate: "2026-08-01",
+    issuingBody: null,
+    documentNumber: null,
+    status: "pending_approval",
+    rejectedReason: null,
+    approvedBy: null,
+    approvedAt: null,
+    submittedAt: "2026-05-12T11:00:00Z",
+  },
+  {
+    id: "cd6",
+    workerId: "w3",
+    organizationId: MOCK_ORG,
+    docType: "right_to_work",
+    docName: "Right to Work",
+    fileUrl: null,
+    issuedDate: null,
+    expiryDate: "2026-12-31",
+    issuingBody: null,
+    documentNumber: null,
+    status: "pending_approval",
+    rejectedReason: null,
+    approvedBy: null,
+    approvedAt: null,
+    submittedAt: "2026-05-12T11:30:00Z",
+  },
+];
+
+export function getMockWorkerDetail(id: string): WorkerDetail | null {
+  const worker = MOCK_WORKERS.find((w) => w.id === id);
+  if (!worker) return null;
+  return {
+    ...worker,
+    phone: "+61 400 000 000",
+    schadsLevel: 2,
+    languages: ["English", "Mandarin"],
+    certificationsSummary: { manual_handling: true },
+    preferences: { no_sleepovers: false },
+    documents: MOCK_COMPLIANCE_DOCS.filter((d) => d.workerId === id),
+  };
+}
+
+export function getMockPendingCompliance(): ComplianceDocument[] {
+  return MOCK_COMPLIANCE_DOCS.filter((d) => d.status === "pending_approval");
+}
+
+export { MOCK_HOUSE_1, MOCK_HOUSE_2, MOCK_ORG };
