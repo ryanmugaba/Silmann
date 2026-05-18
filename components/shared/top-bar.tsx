@@ -6,7 +6,6 @@ import {
   Building2,
   ChevronDown,
   LogOut,
-  Menu,
   Search,
   Settings,
   Sparkles,
@@ -35,13 +34,11 @@ import type { AppShellUser } from "@/components/shared/app-shell";
 
 type TopBarProps = {
   user: AppShellUser;
-  onToggleSidebar: () => void;
   notifications?: NotificationItem[];
 };
 
 export function TopBar({
   user,
-  onToggleSidebar,
   notifications = [],
 }: TopBarProps) {
   const { houses, activeHouse, setActiveHouseId } = useHouseContext();
@@ -78,16 +75,6 @@ export function TopBar({
         Skip to main content
       </a>
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/70 bg-card/80 px-4 shadow-header backdrop-blur-xl md:gap-4 md:px-6">
-        <Button
-          variant="ghost"
-          size="sm"
-          className="hidden shrink-0 lg:inline-flex"
-          onClick={onToggleSidebar}
-          aria-label="Toggle sidebar"
-        >
-          <Menu className="h-5 w-5" strokeWidth={1.5} />
-        </Button>
-
         <Button
           type="button"
           variant="outline"

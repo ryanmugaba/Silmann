@@ -15,6 +15,7 @@ import { Can } from "@/lib/primitives/rbac/hooks";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import {
   Drawer,
+  DrawerClose,
   DrawerContent,
   DrawerHeader,
   DrawerTitle,
@@ -137,12 +138,14 @@ export function MobileTabBar() {
                 {MORE_LINKS.map((item) => (
                   <li key={item.href}>
                     <Can permission={item.permission}>
-                      <Link
-                        href={item.href}
-                        className="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        {item.label}
-                      </Link>
+                      <DrawerClose asChild>
+                        <Link
+                          href={item.href}
+                          className="block rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          {item.label}
+                        </Link>
+                      </DrawerClose>
                     </Can>
                   </li>
                 ))}
@@ -150,13 +153,15 @@ export function MobileTabBar() {
                   const Icon = item.icon;
                   return (
                     <li key={item.href}>
-                      <Link
-                        href={item.href}
-                        className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
-                      >
-                        <Icon className="h-4 w-4" strokeWidth={1.5} />
-                        {item.label}
-                      </Link>
+                      <DrawerClose asChild>
+                        <Link
+                          href={item.href}
+                          className="flex items-center gap-2 rounded-xl px-3 py-2.5 text-sm font-medium hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+                        >
+                          <Icon className="h-4 w-4" strokeWidth={1.5} />
+                          {item.label}
+                        </Link>
+                      </DrawerClose>
                     </li>
                   );
                 })}

@@ -88,7 +88,8 @@ async function sendEmail(
     const message =
       "RESEND_API_KEY is required to send email notifications in production.";
     if (process.env.NODE_ENV === "production") {
-      throw new Error(message);
+      console.error("[notifications] email skipped", { to, subject, message });
+      return;
     }
     console.info("[notifications] email stub", { to, subject });
     return;
@@ -118,7 +119,8 @@ async function sendSms(to: string, body: string): Promise<void> {
     const message =
       "TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN, and TWILIO_PHONE_NUMBER are required to send SMS notifications in production.";
     if (process.env.NODE_ENV === "production") {
-      throw new Error(message);
+      console.error("[notifications] sms skipped", { to, message });
+      return;
     }
     console.info("[notifications] sms stub", { to, body: body.slice(0, 80) });
     return;
@@ -178,15 +180,29 @@ export async function sendNotification(
     }
 
     if (channels.includes("email") && profile.email) {
-      await sendEmail(
-        profile.email,
-        payload.title,
-        payload.body ?? payload.title
-      );
+      try {
+        await sendEmail(
+          profile.email,
+          payload.title,
+          payload.body ?? payload.title
+        );
+      } catch (error) {
+        console.error("[notifications] email failed", {
+          userId: profile.id,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
     }
 
     if (channels.includes("sms") && profile.phone) {
-      await sendSms(profile.phone, payload.body ?? payload.title);
+      try {
+        await sendSms(profile.phone, payload.body ?? payload.title);
+      } catch (error) {
+        console.error("[notifications] sms failed", {
+          userId: profile.id,
+          error: error instanceof Error ? error.message : "Unknown error",
+        });
+      }
     }
   }
 

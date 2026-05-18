@@ -51,7 +51,6 @@ export function AppShell({
               <TopBar
                 user={user}
                 notifications={notifications}
-                onToggleSidebar={() => setCollapsed((c) => !c)}
               />
               <main
                 id="main-content"

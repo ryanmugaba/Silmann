@@ -161,7 +161,7 @@ export async function createAnnouncement(
       title: parsed.title,
       priority: parsed.priority,
       category: parsed.category,
-      target_audience: (parsed.targetAudience ?? {}) as Json,
+      target_audience: audience as Json,
       requires_acknowledgment: parsed.requiresAcknowledgment,
       pinned: parsed.pinned,
       scheduled_for: parsed.scheduledFor ?? null,
