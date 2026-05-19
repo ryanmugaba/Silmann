@@ -3,6 +3,8 @@ import { AuthCard } from "@/components/auth/auth-card";
 import { LoginForm } from "./login-form";
 
 const LOGIN_ERROR_MESSAGES: Record<string, string> = {
+  auth_failed:
+    "Sign-in could not be completed. Please try again or use email and password.",
   google_account_not_invited:
     "That Google account is not linked to a Silman organisation yet. Ask your organisation owner for an invite, or create an organisation.",
   missing_code: "Google did not return an authorization code. Please try again.",
