@@ -85,7 +85,7 @@ git push origin main
 
 5. **Deploy**.
 
-   **If you see `MIDDLEWARE_INVOCATION_FAILED`:** the Edge middleware crashed — almost always missing or wrong Supabase env on Vercel. Confirm **Production** has `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_ANON_KEY` (real values, not placeholders), then **Redeploy**.
+   **If you see `MIDDLEWARE_INVOCATION_FAILED`:** usually (1) missing `NEXT_PUBLIC_SUPABASE_URL` / `NEXT_PUBLIC_SUPABASE_ANON_KEY` on Vercel, or (2) an old middleware build that mutated cookies on the Edge runtime. Set real Supabase keys under **Production**, redeploy from latest `main`, then hard-refresh the site.
 
 6. After first deploy, set `NEXT_PUBLIC_APP_URL` to the real Vercel URL and **Redeploy**.
 

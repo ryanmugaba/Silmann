@@ -1,15 +1,21 @@
-import { type NextRequest } from "next/server";
+import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 export async function middleware(request: NextRequest) {
-  return await updateSession(request);
+  try {
+    return await updateSession(request);
+  } catch (error) {
+    console.error("[middleware] fatal:", error);
+    return NextResponse.next();
+  }
 }
 
 export const config = {
   matcher: [
     /*
-     * Skip static assets and Stripe/cron webhooks (no session needed).
+     * Run only on page routes — skip API, static files, and webhooks.
+     * API routes authenticate in route handlers; avoids Edge middleware crashes.
      */
-    "/((?!_next/static|_next/image|favicon.ico|api/stripe/webhook|api/cron|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
+    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp|ico)$).*)",
   ],
 };
