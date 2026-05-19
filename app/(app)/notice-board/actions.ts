@@ -139,6 +139,9 @@ export async function createAnnouncement(
       channelId = newChannel.id;
     }
 
+    // Poster must be a channel member before insert (RLS checks membership)
+    await syncAnnouncementChannelMembers(channelId, [ctx.user_id]);
+
     const { data: message, error: msgError } = await supabase
       .from("messages")
       .insert({

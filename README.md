@@ -34,6 +34,10 @@ NDIS Supported Independent Living (SIL) management for Australian providers. Des
    | `RESEND_API_KEY` | Optional — email notifications |
    | `RESEND_FROM_EMAIL` | Verified sender for email notifications |
    | `TWILIO_*` | Optional — SMS (phase 2) |
+   | `STRIPE_SECRET_KEY` | Stripe secret key (subscriptions) |
+   | `STRIPE_WEBHOOK_SECRET` | Stripe webhook signing secret |
+   | `STRIPE_PRICE_ID` | Stripe Price ID for **$29.99 AUD/month** |
+   | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Optional — Stripe publishable key |
 
 3. **Supabase (local)**
 
@@ -44,7 +48,7 @@ NDIS Supported Independent Living (SIL) management for Australian providers. Des
    npx supabase db reset
    ```
 
-   `db reset` applies all migrations in `supabase/migrations/` and runs `supabase/seed.sql`.
+   `db reset` applies migrations in `supabase/migrations/` (empty production seed).
 
 4. **Run the app**
 
@@ -54,23 +58,22 @@ NDIS Supported Independent Living (SIL) management for Australian providers. Des
 
    Open [http://localhost:3000](http://localhost:3000).
 
-### Demo accounts (after seed)
+### Production signup & billing
 
-All demo users share password **`DemoPass123!`**
+1. Open [http://localhost:3000](http://localhost:3000) → **Get started** (or `/signup`).
+2. Create your organisation (onboarding wizard).
+3. **Settings → Billing** → subscribe via Stripe Checkout (**$29.99 AUD/month** per organisation).
 
-| Email | Role |
-|-------|------|
-| `owner@demo.silman.app` | Owner |
-| `tl.parramatta@demo.silman.app` | Team leader (Parramatta) |
-| `tl.blacktown@demo.silman.app` | Team leader (Blacktown) |
-| `roster@demo.silman.app` | Roster coordinator |
-| `worker1@demo.silman.app` … `worker6@demo.silman.app` | Support workers |
+See **[docs/STRIPE_SETUP.md](docs/STRIPE_SETUP.md)** for Stripe keys and webhooks.  
+**Host in the cloud (recommended):** **[docs/DEPLOY.md](docs/DEPLOY.md)** — Vercel Sydney + Supabase Australia.
 
-Seed includes **Demo SIL Co**, two houses, six participants (with medications and rostering rules), shifts, availability, notices, reminders, and compliance docs nearing expiry.
+**Cursor + Vercel:** Official Vercel agent plugin — see **[docs/CURSOR_VERCEL_PLUGIN.md](docs/CURSOR_VERCEL_PLUGIN.md)** (`/vercel-plugin:deploy`, env management).
+
+Optional local UI fixtures only: `NEXT_PUBLIC_ENABLE_MOCK_DATA=true` (never use in production).
 
 ## Database
 
-Migrations: `supabase/migrations/` (`0001` foundation → `0013` production hardening).
+Migrations: `supabase/migrations/` (`0001` foundation → `0015` billing).
 
 ```bash
 # Local reset + seed

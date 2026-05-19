@@ -1,16 +1,21 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { isStripeConfigured } from "@/lib/billing/stripe";
 import { Plug } from "lucide-react";
 
 export const metadata = { title: "Integrations — Settings — Silman" };
 
-const INTEGRATIONS = [
-  { name: "Resend", description: "Transactional email delivery", status: "planned" },
-  { name: "Twilio", description: "SMS notifications (paid add-on)", status: "planned" },
-  { name: "OpenAI", description: "AI assistant (@AI mentions)", status: "active" },
-];
-
 export default function IntegrationsSettingsPage() {
+  const INTEGRATIONS = [
+    {
+      name: "Stripe",
+      description: "Subscriptions & billing ($29.99 AUD/month)",
+      status: isStripeConfigured() ? "active" : "setup required",
+    },
+    { name: "Resend", description: "Transactional email delivery", status: "planned" },
+    { name: "Twilio", description: "SMS notifications (paid add-on)", status: "planned" },
+    { name: "OpenAI", description: "AI assistant (@AI mentions)", status: "active" },
+  ];
   return (
     <Card className="shadow-card">
       <CardHeader>

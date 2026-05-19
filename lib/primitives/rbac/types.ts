@@ -85,7 +85,7 @@ export const enum PermissionKey {
   ORG_VIEW = "org:view",
 }
 
-/** All permission keys — used for owner grants and permission matrices. */
+/** Every permission key (matrices, validation). */
 export const ALL_PERMISSION_KEYS: readonly PermissionKey[] = [
   PermissionKey.PARTICIPANT_VIEW,
   PermissionKey.PARTICIPANT_EDIT,
@@ -138,6 +138,22 @@ export const ALL_PERMISSION_KEYS: readonly PermissionKey[] = [
   PermissionKey.CUSTOM_ROLE_MANAGE,
   PermissionKey.ORG_VIEW,
 ];
+
+/** Frontline self-service only — not granted to owner/managers by default. */
+export const WORKER_SELF_SERVICE_PERMISSIONS: readonly PermissionKey[] = [
+  PermissionKey.SHIFT_VIEW_OWN,
+  PermissionKey.SHIFT_EDIT_OWN,
+  PermissionKey.AVAILABILITY_VIEW_OWN,
+  PermissionKey.AVAILABILITY_SUBMIT,
+  PermissionKey.SHIFT_SWAP_REQUEST,
+  PermissionKey.COMPLIANCE_SUBMIT,
+] as const;
+
+const WORKER_SELF_SERVICE_SET = new Set<string>(WORKER_SELF_SERVICE_PERMISSIONS);
+
+/** Owner/org-admin grants — all keys except worker-only self-service. */
+export const OWNER_PERMISSION_KEYS: readonly PermissionKey[] =
+  ALL_PERMISSION_KEYS.filter((key) => !WORKER_SELF_SERVICE_SET.has(key));
 
 const PERMISSION_KEY_SET = new Set<string>(ALL_PERMISSION_KEYS);
 

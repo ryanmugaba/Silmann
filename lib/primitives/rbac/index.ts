@@ -20,8 +20,10 @@ export {
   ForbiddenError,
   isPermissionKey,
   isRole,
+  OWNER_PERMISSION_KEYS,
   PermissionKey,
   ROLES,
+  WORKER_SELF_SERVICE_PERMISSIONS,
 } from "./types";
 export type {
   PermissionContext,

@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/configured";
+import { isSupabaseConfigured, shouldUseMockData } from "@/lib/supabase/configured";
 import {
   getMockAvailabilityGrid,
   getMockShiftsInRange,
@@ -48,10 +48,12 @@ export async function listShiftsInRange(
   filters?: { houseId?: string; status?: ShiftStatus }
 ): Promise<{ shifts: ShiftRecord[]; isMock: boolean }> {
   if (!isSupabaseConfigured()) {
-    return {
-      shifts: getMockShiftsInRange(new Date(rangeStart), new Date(rangeEnd)),
-      isMock: true,
-    };
+    return shouldUseMockData()
+      ? {
+          shifts: getMockShiftsInRange(new Date(rangeStart), new Date(rangeEnd)),
+          isMock: true,
+        }
+      : { shifts: [], isMock: false };
   }
 
   const supabase = await createClient();
@@ -79,11 +81,8 @@ export async function listShiftsInRange(
 
   const { data, error } = await query.order("start_at");
 
-  if (error || !data?.length) {
-    return {
-      shifts: getMockShiftsInRange(new Date(rangeStart), new Date(rangeEnd)),
-      isMock: true,
-    };
+  if (error) {
+    return { shifts: [], isMock: false };
   }
 
   return {

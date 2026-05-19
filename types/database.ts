@@ -6,6 +6,14 @@ export type Json =
   | { [key: string]: Json | undefined }
   | Json[];
 
+export type SubscriptionStatus =
+  | "incomplete"
+  | "trialing"
+  | "active"
+  | "past_due"
+  | "canceled"
+  | "unpaid";
+
 export type OrganizationRow = {
   id: string;
   name: string;
@@ -14,6 +22,11 @@ export type OrganizationRow = {
   logo_url: string | null;
   timezone: string;
   settings: Json;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
+  subscription_status: SubscriptionStatus;
+  subscription_current_period_end: string | null;
+  subscription_cancel_at_period_end: boolean;
   created_at: string;
   updated_at: string;
   deleted_at: string | null;

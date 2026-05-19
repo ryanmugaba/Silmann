@@ -19,12 +19,17 @@ describe("can()", () => {
       house_ids: [],
     });
 
-    it("can perform any permission without house assignment", () => {
+    it("can perform org-management permissions without house assignment", () => {
       expect(
         can(owner, PermissionKey.PARTICIPANT_EDIT, { house_id: HOUSE_B })
       ).toBe(true);
       expect(can(owner, PermissionKey.BILLING_MANAGE)).toBe(true);
       expect(can(owner, PermissionKey.USER_ROLE_CHANGE)).toBe(true);
+    });
+
+    it("cannot use frontline self-service permissions", () => {
+      expect(can(owner, PermissionKey.AVAILABILITY_SUBMIT)).toBe(false);
+      expect(can(owner, PermissionKey.COMPLIANCE_SUBMIT)).toBe(false);
     });
 
     it("does not throw via requirePermission for restricted resources", () => {
@@ -67,6 +72,10 @@ describe("can()", () => {
     it("cannot manage billing or change user roles", () => {
       expect(can(teamLeader, PermissionKey.BILLING_MANAGE)).toBe(false);
       expect(can(teamLeader, PermissionKey.USER_ROLE_CHANGE)).toBe(false);
+    });
+
+    it("cannot submit own availability", () => {
+      expect(can(teamLeader, PermissionKey.AVAILABILITY_SUBMIT)).toBe(false);
     });
 
     it("throws ForbiddenError for out-of-scope edits", () => {

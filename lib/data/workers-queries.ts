@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/configured";
+import { isSupabaseConfigured, shouldUseMockData } from "@/lib/supabase/configured";
 import { computeCountdownStatus } from "@/lib/primitives/countdown/compute";
 import { DEFAULT_COMPLIANCE_DOC } from "@/lib/primitives/countdown/types";
 import {
@@ -115,8 +115,11 @@ export async function listWorkers(
     .eq("organization_id", organizationId)
     .is("deleted_at", null);
 
-  if (error || !workerRows?.length) {
-    return { workers: MOCK_WORKERS, isMock: true };
+  if (error) {
+    return { workers: [], isMock: false };
+  }
+  if (!workerRows?.length) {
+    return { workers: [], isMock: false };
   }
 
   const profileIds = workerRows.map(

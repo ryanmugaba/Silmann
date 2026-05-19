@@ -12,7 +12,7 @@ import { withPermission } from "@/lib/primitives/rbac/server";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import type { RuleEvaluationContext } from "@/lib/primitives/rules/types";
 import { listShiftsInRange } from "@/lib/data/roster-queries";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/configured";
 import {
   cancelShiftSchema,
@@ -577,7 +577,9 @@ export async function cancelShift(formData: FormData) {
 export async function submitAvailability(formData: FormData) {
   return withPermission(PermissionKey.AVAILABILITY_SUBMIT, async (ctx) => {
     if (ctx.role !== "support_worker") {
-      return actionError("Only support workers can submit their own availability.");
+      return actionError(
+        "Only support workers can submit availability. Managers review worker availability on the roster."
+      );
     }
 
     const cellsJson = formData.get("cells");
@@ -598,7 +600,7 @@ export async function submitAvailability(formData: FormData) {
       return actionSuccess(undefined, "Demo mode: availability submitted.");
     }
 
-    const supabase = await createClient();
+    const supabase = createServiceClient();
     const rows = parsed.data.cells.map((cell) => ({
       organization_id: ctx.organization_id,
       worker_id: ctx.user_id,

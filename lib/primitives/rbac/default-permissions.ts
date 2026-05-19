@@ -1,5 +1,5 @@
 import {
-  ALL_PERMISSION_KEYS,
+  OWNER_PERMISSION_KEYS,
   PermissionKey,
   type Role,
 } from "./types";
@@ -81,7 +81,7 @@ const SUPPORT_WORKER_PERMISSIONS: PermissionKey[] = [
 
 /** Default permission sets per built-in role (before org-level overrides). */
 export const DEFAULT_PERMISSIONS: Record<Role, readonly PermissionKey[]> = {
-  owner: ALL_PERMISSION_KEYS,
+  owner: OWNER_PERMISSION_KEYS,
   team_leader: TEAM_LEADER_PERMISSIONS,
   roster_coordinator: ROSTER_COORDINATOR_PERMISSIONS,
   support_worker: SUPPORT_WORKER_PERMISSIONS,

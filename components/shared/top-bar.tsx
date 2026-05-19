@@ -24,6 +24,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/input";
+import { AiAssistantTopBarButton } from "@/components/shared/ai-assistant-dock";
 import { CommandPalette } from "@/components/shared/command-palette";
 import {
   NotificationsPanel,
@@ -75,18 +76,7 @@ export function TopBar({
         Skip to main content
       </a>
       <header className="sticky top-0 z-30 flex h-14 items-center gap-3 border-b border-border/70 bg-card/80 px-4 shadow-header backdrop-blur-xl md:gap-4 md:px-6">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="gap-2 md:hidden"
-          onClick={() => setCommandOpen(true)}
-          aria-label="Open Silman AI and search"
-          aria-haspopup="dialog"
-        >
-          <Sparkles className="h-4 w-4" strokeWidth={1.5} />
-          Ask AI
-        </Button>
+        <AiAssistantTopBarButton className="md:hidden" showLabel />
 
         <div className="relative hidden max-w-md flex-1 md:block">
           <Search
@@ -107,6 +97,7 @@ export function TopBar({
         </div>
 
         <div className="ml-auto flex items-center gap-2">
+          <AiAssistantTopBarButton className="hidden md:inline-flex" />
           {houses.length > 0 ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>

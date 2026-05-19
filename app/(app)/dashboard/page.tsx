@@ -2,6 +2,7 @@ import Link from "next/link";
 import {
   AlertTriangle,
   Calendar,
+  CalendarCheck,
   CircleHelp,
   FileWarning,
   Sparkles,
@@ -41,37 +42,67 @@ export default async function DashboardPage() {
     ? await listPendingCompliance(ctx.organization_id)
     : { documents: [], isMock: false };
 
-  const widgets = [
-    {
-      title: "Unfilled shifts",
-      description: "Shifts in the next 7 days without an assigned worker.",
-      icon: Calendar,
-      empty: "No unfilled shifts — your roster is fully covered.",
-      href: "/roster",
-    },
-    {
-      title: "Expiring documents",
-      description: "Plans, scripts, and compliance items approaching expiry.",
-      icon: FileWarning,
-      empty: "No documents expiring soon. Countdown alerts will appear here.",
-      href: "/participants",
-    },
-    {
-      title: "AI nudges",
-      description: "Run operational work from natural-language prompts.",
-      icon: Sparkles,
-      empty: "Press Ctrl/Command+K and ask Silman to roster, remind, invite, or post.",
-      href: "/help",
-      action: "Learn AI prompts",
-    },
-    {
-      title: "Today's incidents",
-      description: "Open incidents requiring follow-up today.",
-      icon: AlertTriangle,
-      empty: "No open incidents for today.",
-      href: "/incidents",
-    },
-  ];
+  const isSupportWorker = ctx.role === "support_worker";
+
+  const widgets = isSupportWorker
+    ? [
+        {
+          title: "My availability",
+          description: "Submit when you can work over the next four weeks.",
+          icon: CalendarCheck,
+          empty: "Set your availability so rostering can match you to shifts.",
+          href: "/my-availability",
+          action: "Update availability",
+        },
+        {
+          title: "My shifts",
+          description: "Upcoming shifts assigned to you.",
+          icon: Calendar,
+          empty: "No upcoming shifts on your roster yet.",
+          href: "/roster",
+          action: "View roster",
+        },
+        {
+          title: "My compliance",
+          description: "Documents and certifications you need to keep current.",
+          icon: FileWarning,
+          empty: "You're up to date — upload new documents when required.",
+          href: "/my-compliance",
+          action: "Open compliance",
+        },
+      ]
+    : [
+        {
+          title: "Unfilled shifts",
+          description: "Shifts in the next 7 days without an assigned worker.",
+          icon: Calendar,
+          empty: "No unfilled shifts — your roster is fully covered.",
+          href: "/roster",
+        },
+        {
+          title: "Expiring documents",
+          description: "Plans, scripts, and compliance items approaching expiry.",
+          icon: FileWarning,
+          empty: "No documents expiring soon. Countdown alerts will appear here.",
+          href: "/participants",
+        },
+        {
+          title: "AI nudges",
+          description: "Run operational work from natural-language prompts.",
+          icon: Sparkles,
+          empty:
+            "Press Ctrl/Command+K and ask Silman to roster, remind, invite, or post.",
+          href: "/help",
+          action: "Learn AI prompts",
+        },
+        {
+          title: "Today's incidents",
+          description: "Open incidents requiring follow-up today.",
+          icon: AlertTriangle,
+          empty: "No open incidents for today.",
+          href: "/incidents",
+        },
+      ];
 
   return (
     <div className="mx-auto max-w-6xl space-y-8">
@@ -80,11 +111,14 @@ export default async function DashboardPage() {
           Good {getGreeting()}, {firstName}
         </h1>
         <p className="text-muted-foreground">
-          Here&apos;s what needs attention across your SIL houses today.
+          {isSupportWorker
+            ? "Your shifts, availability, and compliance at a glance."
+            : "Here's what needs attention across your SIL houses today."}
         </p>
       </div>
 
-      <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-card to-transparent shadow-card">
+      {!isSupportWorker ? (
+        <Card className="overflow-hidden border-primary/20 bg-gradient-to-br from-primary/10 via-card to-transparent shadow-card">
         <CardHeader className="pb-4">
           <div className="mb-2 inline-flex w-fit items-center gap-2 rounded-full border bg-card/80 px-3 py-1 text-xs font-medium text-primary shadow-sm">
             <Sparkles className="h-3.5 w-3.5" strokeWidth={1.5} />
@@ -110,7 +144,8 @@ export default async function DashboardPage() {
             </Link>
           </Button>
         </CardContent>
-      </Card>
+        </Card>
+      ) : null}
 
       <PendingComplianceWidget
         documents={pendingCompliance.documents}

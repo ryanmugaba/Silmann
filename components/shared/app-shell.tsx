@@ -9,6 +9,8 @@ import { Sidebar } from "@/components/shared/sidebar";
 import { TopBar } from "@/components/shared/top-bar";
 import { MobileTabBar } from "@/components/shared/mobile-tab-bar";
 import { DensityProvider, type Density } from "@/components/providers/density-provider";
+import { AiAssistantProvider } from "@/components/providers/ai-assistant-provider";
+import { AiAssistantDock } from "@/components/shared/ai-assistant-dock";
 import type { NotificationItem } from "@/components/shared/notifications-panel";
 
 export type AppShellUser = {
@@ -38,6 +40,7 @@ export function AppShell({
   return (
     <DensityProvider density={density}>
       <HouseProvider houses={houses}>
+        <AiAssistantProvider>
         <TooltipProvider delayDuration={200}>
           <div className="flex min-h-screen bg-transparent">
             <Sidebar
@@ -60,8 +63,10 @@ export function AppShell({
               </main>
             </motion.div>
             <MobileTabBar />
+            <AiAssistantDock />
           </div>
         </TooltipProvider>
+        </AiAssistantProvider>
       </HouseProvider>
     </DensityProvider>
   );

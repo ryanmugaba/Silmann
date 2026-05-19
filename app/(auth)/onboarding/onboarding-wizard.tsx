@@ -369,14 +369,17 @@ export function OnboardingWizard({
             <AuthCard
               wide
               title={`You're all set, ${userName.split(" ")[0]}`}
-              description="Your SIL workspace is ready. Head to the dashboard to explore modules as you build them out."
+              description="Start your 14-day free trial, then $29.99/month for your whole organisation."
             >
               <div className="flex flex-col gap-3">
-                <Button asChild size="lg">
-                  <Link href="/dashboard">Go to dashboard</Link>
+                <Button asChild size="lg" className="bg-gradient-to-r from-violet-600 to-primary">
+                  <Link href="/settings/billing">Start 14-day free trial</Link>
+                </Button>
+                <Button asChild variant="outline">
+                  <Link href="/dashboard">Skip to dashboard</Link>
                 </Button>
                 <p className="text-center text-sm text-muted-foreground">
-                  Roster, participants, compliance, and more unlock as you configure each module.
+                  Manage billing anytime under Settings → Billing.
                 </p>
               </div>
             </AuthCard>

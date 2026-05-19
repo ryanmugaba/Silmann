@@ -1,4 +1,8 @@
+import { headers } from "next/headers";
 import { redirect } from "next/navigation";
+import { isSubscriptionActive } from "@/lib/billing/constants";
+import { isStripeConfigured } from "@/lib/billing/stripe";
+import { getOrgSubscription } from "@/lib/billing/subscription";
 import { AppShell, type AppShellUser } from "@/components/shared/app-shell";
 import type { Density } from "@/components/providers/density-provider";
 import { PermissionProvider } from "@/components/shared/permission-provider";
@@ -42,6 +46,23 @@ export default async function AppLayout({
     permissionContext = await getPermissionContext();
   } catch {
     redirect("/onboarding");
+  }
+
+  if (isStripeConfigured()) {
+    const pathname = headers().get("x-pathname") ?? "";
+    const billingExempt =
+      pathname.startsWith("/settings/billing") ||
+      pathname === "/subscription-required";
+
+    if (!billingExempt) {
+      const subscription = await getOrgSubscription(profile.organization_id);
+      if (!isSubscriptionActive(subscription?.status)) {
+        if (permissionContext.role === "owner") {
+          redirect("/settings/billing");
+        }
+        redirect("/subscription-required");
+      }
+    }
   }
 
   const { data: houseRows } = await supabase

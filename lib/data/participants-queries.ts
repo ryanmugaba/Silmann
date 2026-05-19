@@ -8,7 +8,7 @@ import {
   MOCK_WORKER_PROFILES,
 } from "@/lib/data/mock-participants";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/configured";
+import { isSupabaseConfigured, shouldUseMockData } from "@/lib/supabase/configured";
 import type {
   AuditLogRow,
   HouseRow,
@@ -37,11 +37,9 @@ export async function listParticipants(): Promise<{
   isMock: boolean;
 }> {
   if (!isSupabaseConfigured()) {
-    return {
-      participants: MOCK_PARTICIPANTS,
-      houses: MOCK_HOUSES,
-      isMock: true,
-    };
+    return shouldUseMockData()
+      ? { participants: MOCK_PARTICIPANTS, houses: MOCK_HOUSES, isMock: true }
+      : { participants: [], houses: [], isMock: false };
   }
 
   const supabase = await createClient();

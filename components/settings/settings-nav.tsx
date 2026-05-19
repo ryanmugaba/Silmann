@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Building,
+  CreditCard,
   Home,
   KeyRound,
   Plug,
@@ -17,6 +18,12 @@ import { Can } from "@/lib/primitives/rbac/hooks";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 
 const NAV = [
+  {
+    href: "/settings/billing",
+    label: "Billing",
+    icon: CreditCard,
+    permission: PermissionKey.BILLING_MANAGE,
+  },
   {
     href: "/settings/organization",
     label: "Organisation",

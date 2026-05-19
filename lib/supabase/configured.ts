@@ -6,3 +6,8 @@ export function isSupabaseConfigured(): boolean {
   if (url.includes("placeholder") || url.includes("your-project")) return false;
   return true;
 }
+
+/** Demo fixtures — off by default for production. Set NEXT_PUBLIC_ENABLE_MOCK_DATA=true locally only. */
+export function shouldUseMockData(): boolean {
+  return process.env.NEXT_PUBLIC_ENABLE_MOCK_DATA === "true";
+}
