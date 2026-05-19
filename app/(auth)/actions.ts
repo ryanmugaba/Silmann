@@ -69,10 +69,23 @@ export async function signIn(
     return actionError(error.message);
   }
 
-  const { data: profile } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return actionError("Could not verify your session. Please try again.");
+  }
+
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("organization_id")
-    .single<{ organization_id: string | null }>();
+    .eq("id", user.id)
+    .maybeSingle<{ organization_id: string | null }>();
+
+  if (profileError) {
+    return actionError(profileError.message);
+  }
 
   if (!profile?.organization_id) {
     redirect("/onboarding");
@@ -94,17 +107,17 @@ export async function signInWithGoogle(formData: FormData): Promise<void> {
       redirectTo: callbackUrl.toString(),
       queryParams: {
         access_type: "offline",
-        prompt: "consent",
+        prompt: "select_account",
       },
     },
   });
 
   if (error || !data.url) {
-    redirect(
-      `/login?error=${encodeURIComponent(
-        error?.message ?? "Google sign-in could not be started."
-      )}`
+    const message = encodeURIComponent(
+      error?.message ?? "Google sign-in could not be started."
     );
+    const errorPath = intent === "owner_signup" ? "/signup" : "/login";
+    redirect(`${errorPath}?error=${message}`);
   }
 
   redirect(data.url);

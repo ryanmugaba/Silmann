@@ -22,16 +22,24 @@ Run the app in the cloud so it is fast, always on, and data stays in **Australia
    - Paste and run `supabase/migrations/0001_foundation.sql` through `0015_billing.sql`
    - Or use CLI: `npx supabase link` then `npx supabase db push`
 
-5. **Authentication** → Providers → enable **Email** (and **Google** if you use it).
+5. **Authentication** → Providers:
+   - Enable **Email**.
+   - Enable **Google** (required for “Continue with Google” on login/signup).
 
-6. **Project Settings → API** — copy:
+6. **Google OAuth** (Supabase dashboard → Authentication → Providers → Google):
+   - Create OAuth credentials in [Google Cloud Console](https://console.cloud.google.com/apis/credentials) (OAuth client ID, Web application).
+   - **Authorized redirect URI:** `https://<your-project-ref>.supabase.co/auth/v1/callback` (copy from the Supabase Google provider page).
+   - Paste **Client ID** and **Client secret** into Supabase.
+   - Under **Authentication → URL configuration**, set:
+     - **Site URL:** `https://your-app.vercel.app` (or custom domain)
+     - **Redirect URLs:** `https://your-app.vercel.app/auth/callback` and `http://localhost:3000/auth/callback` for local dev
+   - Set `NEXT_PUBLIC_APP_URL` on Vercel to the same production URL so OAuth redirects match.
+
+7. **Project Settings → API** — copy:
    - Project URL → `NEXT_PUBLIC_SUPABASE_URL`
    - `anon` `public` → `NEXT_PUBLIC_SUPABASE_ANON_KEY`
    - `service_role` `secret` → `SUPABASE_SERVICE_ROLE_KEY` (never expose to the browser)
 
-7. **Authentication → URL configuration** (after you have a Vercel URL):
-   - Site URL: `https://your-app.vercel.app`
-   - Redirect URLs: `https://your-app.vercel.app/auth/callback`
 
 ---
 

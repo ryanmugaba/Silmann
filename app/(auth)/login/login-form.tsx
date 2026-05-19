@@ -5,7 +5,8 @@ import Link from "next/link";
 import { useFormState, useFormStatus } from "react-dom";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-import { signIn, signInWithGoogle } from "@/app/(auth)/actions";
+import { signIn } from "@/app/(auth)/actions";
+import { GoogleOAuthButton } from "@/components/auth/google-oauth-button";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { PasswordInput } from "@/components/ui/password-input";
@@ -22,7 +23,7 @@ function SubmitButton() {
           Signing in…
         </>
       ) : (
-        "Sign in"
+        "Sign in with email"
       )}
     </Button>
   );
@@ -46,20 +47,24 @@ export function LoginForm({ initialError }: { initialError?: string }) {
     }
   }, [state]);
 
+  const fieldErrors = state && !state.success ? state.fieldErrors : undefined;
+
   return (
-    <div className="space-y-4">
-      <form action={signInWithGoogle}>
-        <Button type="submit" variant="outline" className="w-full">
-          <span className="mr-2 flex h-5 w-5 items-center justify-center rounded-full bg-card text-sm font-semibold shadow-sm">
-            G
-          </span>
-          Continue with Google
-        </Button>
-      </form>
+    <div className="space-y-5">
+      {initialError ? (
+        <div
+          className="rounded-xl border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive"
+          role="alert"
+        >
+          {initialError}
+        </div>
+      ) : null}
+
+      <GoogleOAuthButton intent="login" label="Continue with Google" />
 
       <div className="flex items-center gap-3 text-xs text-muted-foreground">
         <span className="h-px flex-1 bg-border" />
-        <span>or use private email login</span>
+        <span>or sign in with email</span>
         <span className="h-px flex-1 bg-border" />
       </div>
 
@@ -73,11 +78,17 @@ export function LoginForm({ initialError }: { initialError?: string }) {
             autoComplete="email"
             placeholder="you@provider.com.au"
             required
+            aria-invalid={Boolean(fieldErrors?.email)}
           />
-          <p className="text-xs text-muted-foreground">
-            Use the email your organisation registered with Silman.
-          </p>
+          {fieldErrors?.email ? (
+            <p className="text-sm text-destructive">{fieldErrors.email[0]}</p>
+          ) : (
+            <p className="text-xs text-muted-foreground">
+              Use the email your organisation registered with Silman.
+            </p>
+          )}
         </div>
+
         <div className="space-y-2">
           <div className="flex items-center justify-between">
             <Label htmlFor="password">Password</Label>
@@ -93,13 +104,26 @@ export function LoginForm({ initialError }: { initialError?: string }) {
             name="password"
             autoComplete="current-password"
             required
+            aria-invalid={Boolean(fieldErrors?.password)}
           />
+          {fieldErrors?.password ? (
+            <p className="text-sm text-destructive">{fieldErrors.password[0]}</p>
+          ) : null}
         </div>
-        {state && !state.success && state.fieldErrors?.email ? (
-          <p className="text-sm text-destructive">{state.fieldErrors.email[0]}</p>
+
+        {fieldErrors?._form ? (
+          <p className="text-sm text-destructive">{fieldErrors._form[0]}</p>
         ) : null}
+
         <SubmitButton />
       </form>
+
+      <p className="text-center text-xs text-muted-foreground">
+        New organisation owner?{" "}
+        <Link href="/signup" className="font-medium text-primary hover:underline">
+          Create an account
+        </Link>
+      </p>
     </div>
   );
 }
