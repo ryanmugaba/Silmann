@@ -1,10 +1,11 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 
-function withPathname(response: NextResponse, pathname: string): NextResponse {
-  response.headers.set("x-pathname", pathname);
-  return response;
-}
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: CookieOptions;
+};
 
 function getSupabaseEnv(): { url: string; anonKey: string } | null {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
@@ -22,26 +23,51 @@ function getSupabaseEnv(): { url: string; anonKey: string } | null {
   return { url, anonKey };
 }
 
-function isMiddlewarePublicPath(pathname: string): boolean {
-  if (pathname === "/") return true;
-  if (pathname === "/privacy" || pathname === "/terms") return true;
-  if (pathname.startsWith("/auth/callback")) return true;
-  if (pathname.startsWith("/login")) return true;
-  if (pathname.startsWith("/signup")) return true;
-  if (pathname.startsWith("/invite")) return true;
-  if (pathname.startsWith("/forgot-password")) return true;
-  if (pathname.startsWith("/reset-password")) return true;
-  return false;
-}
-
-function isAuthRoute(pathname: string): boolean {
+/** Paths that do not require an authenticated session. */
+function isAuthExemptPath(pathname: string): boolean {
   return (
     pathname.startsWith("/login") ||
+    pathname.startsWith("/auth") ||
     pathname.startsWith("/signup") ||
+    pathname === "/" ||
+    pathname === "/privacy" ||
+    pathname === "/terms" ||
     pathname.startsWith("/invite") ||
     pathname.startsWith("/forgot-password") ||
     pathname.startsWith("/reset-password")
   );
+}
+
+function isAuthEntryPath(pathname: string): boolean {
+  return (
+    pathname.startsWith("/login") ||
+    pathname.startsWith("/auth") ||
+    pathname.startsWith("/signup")
+  );
+}
+
+function withPathname(response: NextResponse, pathname: string): NextResponse {
+  response.headers.set("x-pathname", pathname);
+  return response;
+}
+
+/**
+ * Redirect while preserving refreshed session cookies from supabaseResponse.
+ * Only creates NextResponse.redirect here (allowed); cookies are copied from
+ * supabaseResponse headers so setAll mutations are not lost.
+ */
+function redirectPreservingSession(
+  request: NextRequest,
+  pathname: string,
+  targetPath: string,
+  supabaseResponse: NextResponse
+): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = targetPath;
+  const redirectResponse = NextResponse.redirect(url, {
+    headers: supabaseResponse.headers,
+  });
+  return withPathname(redirectResponse, pathname);
 }
 
 export async function updateSession(request: NextRequest) {
@@ -49,57 +75,46 @@ export async function updateSession(request: NextRequest) {
 
   const env = getSupabaseEnv();
   if (!env) {
-    if (isMiddlewarePublicPath(pathname)) {
-      return withPathname(NextResponse.next(), pathname);
+    if (isAuthExemptPath(pathname)) {
+      return withPathname(NextResponse.next({ request }), pathname);
     }
-    return withPathname(NextResponse.redirect(new URL("/", request.url)), pathname);
+    const url = request.nextUrl.clone();
+    url.pathname = "/login";
+    return withPathname(NextResponse.redirect(url), pathname);
   }
 
+  // Must exist before createServerClient — same object returned after getUser()
   let supabaseResponse = NextResponse.next({ request });
 
-  try {
-    const supabase = createServerClient(env.url, env.anonKey, {
-      cookies: {
-        getAll() {
-          return request.cookies.getAll();
-        },
-        setAll(cookiesToSet) {
-          // Edge runtime (Vercel): do NOT call request.cookies.set — it throws and
-          // causes MIDDLEWARE_INVOCATION_FAILED. Only write cookies on the response.
-          supabaseResponse = NextResponse.next({ request });
-          cookiesToSet.forEach(({ name, value, options }) => {
-            supabaseResponse.cookies.set(name, value, options);
-          });
-        },
+  const supabase = createServerClient(env.url, env.anonKey, {
+    cookies: {
+      getAll() {
+        return request.cookies.getAll();
       },
-    });
+      setAll(cookiesToSet: CookieToSet[]) {
+        // Two-pass write required by @supabase/ssr on Edge (Vercel)
+        cookiesToSet.forEach(({ name, value }) => {
+          request.cookies.set(name, value);
+        });
+        supabaseResponse = NextResponse.next({ request });
+        cookiesToSet.forEach(({ name, value, options }) => {
+          supabaseResponse.cookies.set(name, value, options);
+        });
+      },
+    },
+  });
 
-    const {
-      data: { user },
-    } = await supabase.auth.getUser();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
 
-    const isPublic = isMiddlewarePublicPath(pathname);
-
-    if (!user && !isPublic) {
-      return withPathname(
-        NextResponse.redirect(new URL("/login", request.url)),
-        pathname
-      );
-    }
-
-    if (user && isAuthRoute(pathname)) {
-      return withPathname(
-        NextResponse.redirect(new URL("/dashboard", request.url)),
-        pathname
-      );
-    }
-
-    return withPathname(supabaseResponse, pathname);
-  } catch (error) {
-    console.error("[middleware]", error);
-    if (isMiddlewarePublicPath(pathname)) {
-      return withPathname(NextResponse.next(), pathname);
-    }
-    return withPathname(NextResponse.redirect(new URL("/", request.url)), pathname);
+  if (!user && !isAuthExemptPath(pathname)) {
+    return redirectPreservingSession(request, pathname, "/login", supabaseResponse);
   }
+
+  if (user && isAuthEntryPath(pathname)) {
+    return redirectPreservingSession(request, pathname, "/dashboard", supabaseResponse);
+  }
+
+  return withPathname(supabaseResponse, pathname);
 }
