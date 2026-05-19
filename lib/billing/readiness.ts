@@ -2,6 +2,8 @@
  * Server-side checklist for billing / deploy readiness (logs in dev, no secrets).
  */
 
+import { isEnvPlaceholder } from "@/lib/env/placeholders";
+
 export type BillingReadiness = {
   supabase: boolean;
   stripeSecret: boolean;
@@ -20,17 +22,9 @@ export function getBillingReadiness(): BillingReadiness {
     Boolean(process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY) &&
     Boolean(process.env.SUPABASE_SERVICE_ROLE_KEY);
 
-  const stripeSecret =
-    Boolean(process.env.STRIPE_SECRET_KEY) &&
-    !String(process.env.STRIPE_SECRET_KEY).includes("your-");
-
-  const stripePrice =
-    Boolean(process.env.STRIPE_PRICE_ID) &&
-    !String(process.env.STRIPE_PRICE_ID).includes("price_xxx");
-
-  const stripeWebhook =
-    Boolean(process.env.STRIPE_WEBHOOK_SECRET) &&
-    !String(process.env.STRIPE_WEBHOOK_SECRET).includes("whsec_your");
+  const stripeSecret = !isEnvPlaceholder(process.env.STRIPE_SECRET_KEY);
+  const stripePrice = !isEnvPlaceholder(process.env.STRIPE_PRICE_ID);
+  const stripeWebhook = !isEnvPlaceholder(process.env.STRIPE_WEBHOOK_SECRET);
 
   const appUrl =
     Boolean(process.env.NEXT_PUBLIC_APP_URL) &&

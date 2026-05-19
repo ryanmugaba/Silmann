@@ -23,6 +23,7 @@ type AiAssistantContextValue = {
   toolCalls: AiToolCallLog[];
   loading: boolean;
   error: string | null;
+  aiConfigured: boolean | null;
   send: (content: string) => Promise<boolean>;
   reset: () => void;
 };
@@ -31,7 +32,23 @@ const AiAssistantContext = createContext<AiAssistantContextValue | null>(null);
 
 export function AiAssistantProvider({ children }: { children: ReactNode }) {
   const [state, setState] = useState<AiAssistantState>("minimized");
+  const [aiConfigured, setAiConfigured] = useState<boolean | null>(null);
   const chat = useSilmanAiChat();
+
+  useEffect(() => {
+    let cancelled = false;
+    void fetch("/api/ai/status")
+      .then((res) => res.json())
+      .then((data: { configured?: boolean }) => {
+        if (!cancelled) setAiConfigured(Boolean(data.configured));
+      })
+      .catch(() => {
+        if (!cancelled) setAiConfigured(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const open = useCallback(() => setState("open"), []);
   const minimize = useCallback(() => setState("minimized"), []);
@@ -61,10 +78,11 @@ export function AiAssistantProvider({ children }: { children: ReactNode }) {
       toolCalls: chat.toolCalls,
       loading: chat.loading,
       error: chat.error,
+      aiConfigured,
       send: chat.send,
       reset: chat.reset,
     }),
-    [state, open, minimize, toggle, chat]
+    [state, open, minimize, toggle, chat, aiConfigured]
   );
 
   return (

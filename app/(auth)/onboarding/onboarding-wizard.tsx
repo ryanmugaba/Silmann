@@ -31,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { StartTrialButton } from "@/components/billing/start-trial-button";
 import { INVITE_ROLES } from "@/lib/validators/auth";
 import type { ActionResult } from "@/lib/actions/result";
 
@@ -50,6 +51,7 @@ const ROLE_LABELS: Record<string, string> = {
 type OnboardingWizardProps = {
   userName: string;
   organizationId: string | null;
+  stripeConfigured: boolean;
 };
 
 function PendingButton({ label, pendingLabel }: { label: string; pendingLabel: string }) {
@@ -71,6 +73,7 @@ function PendingButton({ label, pendingLabel }: { label: string; pendingLabel: s
 export function OnboardingWizard({
   userName,
   organizationId: initialOrgId,
+  stripeConfigured,
 }: OnboardingWizardProps) {
   const [step, setStep] = useState(initialOrgId ? 2 : 1);
   const [organizationId, setOrganizationId] = useState<string | null>(
@@ -372,11 +375,18 @@ export function OnboardingWizard({
               description="Start your 14-day free trial, then $29.99/month for your whole organisation."
             >
               <div className="flex flex-col gap-3">
-                <Button asChild size="lg" className="bg-gradient-to-r from-violet-600 to-primary">
-                  <Link href="/settings/billing">Start 14-day free trial</Link>
-                </Button>
+                <StartTrialButton stripeConfigured={stripeConfigured} />
+                {!stripeConfigured ? (
+                  <p className="rounded-xl border border-dashed border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
+                    Add Stripe keys to <code className="text-xs">.env.local</code> to enable
+                    checkout, or skip and configure under Settings → Billing.
+                  </p>
+                ) : null}
                 <Button asChild variant="outline">
                   <Link href="/dashboard">Skip to dashboard</Link>
+                </Button>
+                <Button asChild variant="ghost" size="sm">
+                  <Link href="/settings/billing">Open billing settings</Link>
                 </Button>
                 <p className="text-center text-sm text-muted-foreground">
                   Manage billing anytime under Settings → Billing.

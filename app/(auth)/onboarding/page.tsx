@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { isStripeConfigured } from "@/lib/billing/stripe";
 import { createClient } from "@/lib/supabase/server";
 import { OnboardingWizard } from "./onboarding-wizard";
 
@@ -33,6 +34,7 @@ export default async function OnboardingPage() {
     <OnboardingWizard
       userName={profile?.full_name ?? user.email ?? "there"}
       organizationId={profile?.organization_id ?? null}
+      stripeConfigured={isStripeConfigured()}
     />
   );
 }

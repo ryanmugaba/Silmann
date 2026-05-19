@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import { useSearchParams } from "next/navigation";
-import { CreditCard, ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { ExternalLink, Loader2, Sparkles } from "lucide-react";
+import { StartTrialButton } from "@/components/billing/start-trial-button";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import {
@@ -54,37 +55,23 @@ export function BillingClient({
   organizationName,
 }: BillingClientProps) {
   const searchParams = useSearchParams();
-  const [loading, setLoading] = useState<"checkout" | "portal" | null>(null);
+  const [loading, setLoading] = useState<"portal" | null>(null);
   const checkoutToastShown = useRef(false);
 
   useEffect(() => {
-    if (
-      searchParams.get("checkout") === "success" &&
-      !checkoutToastShown.current
-    ) {
+    const checkout = searchParams.get("checkout");
+    if (checkoutToastShown.current || !checkout) return;
+    if (checkout === "success") {
       checkoutToastShown.current = true;
       toast.success("Subscription activated — welcome to Silman!");
+    }
+    if (checkout === "canceled") {
+      checkoutToastShown.current = true;
+      toast.message("Checkout canceled — you can start your trial anytime.");
     }
   }, [searchParams]);
 
   const active = isSubscriptionActive(status);
-
-  async function startCheckout() {
-    setLoading("checkout");
-    try {
-      const res = await fetch("/api/stripe/checkout", { method: "POST" });
-      const data = (await res.json()) as { url?: string; error?: string };
-      if (!res.ok || !data.url) {
-        toast.error(data.error ?? "Could not start checkout");
-        return;
-      }
-      window.location.href = data.url;
-    } catch {
-      toast.error("Could not reach billing service");
-    } finally {
-      setLoading(null);
-    }
-  }
 
   async function openPortal() {
     setLoading("portal");
@@ -193,20 +180,7 @@ export function BillingClient({
                 Manage subscription
               </Button>
             ) : (
-              <Button
-                type="button"
-                size="lg"
-                className="bg-gradient-to-r from-violet-600 to-primary"
-                onClick={() => void startCheckout()}
-                disabled={loading !== null || !stripeConfigured}
-              >
-                {loading === "checkout" ? (
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <CreditCard className="mr-2 h-4 w-4" strokeWidth={1.5} />
-                )}
-                Start {SILMAN_TRIAL_LABEL.toLowerCase()}
-              </Button>
+              <StartTrialButton stripeConfigured={stripeConfigured} />
             )}
           </div>
         </CardContent>
