@@ -1,10 +1,16 @@
-import { createServerClient } from "@supabase/ssr";
+import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import {
   createClient as createSupabaseClient,
   type SupabaseClient,
 } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
+
+type CookieToSet = {
+  name: string;
+  value: string;
+  options?: CookieOptions;
+};
 
 export async function createClient(): Promise<SupabaseClient<Database>> {
   const cookieStore = await cookies();
@@ -17,13 +23,13 @@ export async function createClient(): Promise<SupabaseClient<Database>> {
         getAll() {
           return cookieStore.getAll();
         },
-        setAll(cookiesToSet: { name: string; value: string; options?: Record<string, unknown> }[]) {
+        setAll(cookiesToSet: CookieToSet[]) {
           try {
-            cookiesToSet.forEach(({ name, value, options }) =>
-              cookieStore.set(name, value, options)
-            );
+            cookiesToSet.forEach(({ name, value, options }) => {
+              cookieStore.set(name, value, options);
+            });
           } catch {
-            // Server Component — ignore
+            // Server Component — ignore; cookies are set in Server Actions / Route Handlers
           }
         },
       },

@@ -94,7 +94,9 @@ export async function signIn(
   redirect("/dashboard");
 }
 
-export async function signInWithGoogle(formData: FormData): Promise<void> {
+export async function signInWithGoogle(
+  formData: FormData
+): Promise<{ url: string } | { error: string }> {
   const intent =
     formData.get("intent") === "owner_signup" ? "owner_signup" : "login";
   const callbackUrl = new URL("/auth/callback", getAppUrl());
@@ -113,14 +115,10 @@ export async function signInWithGoogle(formData: FormData): Promise<void> {
   });
 
   if (error || !data.url) {
-    const message = encodeURIComponent(
-      error?.message ?? "Google sign-in could not be started."
-    );
-    const errorPath = intent === "owner_signup" ? "/signup" : "/login";
-    redirect(`${errorPath}?error=${message}`);
+    return { error: error?.message ?? "Google sign-in could not be started." };
   }
 
-  redirect(data.url);
+  return { url: data.url };
 }
 
 export async function signUpOwner(
