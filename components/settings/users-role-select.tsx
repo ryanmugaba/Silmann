@@ -8,7 +8,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Can } from "@/lib/primitives/rbac/hooks";
-import { PermissionKey, ROLES } from "@/lib/primitives/rbac/types";
+import { getAssignableRoles } from "@/lib/primitives/rbac/role-hierarchy";
+import { PermissionKey, type Role } from "@/lib/primitives/rbac/types";
 import { updateUserRole } from "@/app/(app)/settings/actions";
 import { toast } from "sonner";
 
@@ -18,6 +19,9 @@ type UsersRoleSelectProps = {
 };
 
 export function UsersRoleSelect({ userId, role }: UsersRoleSelectProps) {
+  const currentRole = role as Role;
+  const options = getAssignableRoles(currentRole);
+
   return (
     <Can
       permission={PermissionKey.USER_ROLE_CHANGE}
@@ -35,11 +39,11 @@ export function UsersRoleSelect({ userId, role }: UsersRoleSelectProps) {
           else toast.success("Role updated");
         }}
       >
-        <SelectTrigger className="h-8 w-40 rounded-lg capitalize">
+        <SelectTrigger className="h-8 w-44 rounded-lg capitalize">
           <SelectValue />
         </SelectTrigger>
         <SelectContent className="rounded-xl">
-          {ROLES.map((r) => (
+          {options.map((r) => (
             <SelectItem key={r} value={r} className="capitalize">
               {r.replace(/_/g, " ")}
             </SelectItem>

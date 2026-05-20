@@ -142,24 +142,42 @@ export async function getAvailabilityGrid(
 
   const { data, error } = await supabase
     .from("worker_availability")
-    .select("worker_id, date, status, locked_at, profiles(full_name)")
+    .select("worker_id, date, status, locked_at")
     .eq("organization_id", organizationId)
     .gte("date", start.toISOString().slice(0, 10))
     .lte("date", end.toISOString().slice(0, 10));
 
-  if (error || !data?.length) {
-    return { cells: getMockAvailabilityGrid(), isMock: true };
+  if (error) {
+    return { cells: [], isMock: false };
   }
+
+  if (!data?.length) {
+    return { cells: [], isMock: false };
+  }
+
+  const workerIds = Array.from(
+    new Set(data.map((r: { worker_id: string }) => r.worker_id))
+  );
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, full_name")
+    .in("id", workerIds);
+
+  const nameById = new Map(
+    (profiles ?? []).map((p: { id: string; full_name: string | null }) => [
+      p.id,
+      p.full_name ?? "Worker",
+    ])
+  );
 
   const cells: WorkerAvailabilityCell[] = data.map((row: {
     worker_id: string;
     date: string;
     status: string;
     locked_at: string | null;
-    profiles: { full_name: string } | null;
   }) => ({
     workerId: row.worker_id,
-    workerName: row.profiles?.full_name ?? "Worker",
+    workerName: nameById.get(row.worker_id) ?? "Worker",
     date: row.date,
     status: row.status as WorkerAvailabilityCell["status"],
     hasShift: false,

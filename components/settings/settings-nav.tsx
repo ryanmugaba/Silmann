@@ -7,7 +7,6 @@ import {
   CreditCard,
   Home,
   KeyRound,
-  Plug,
   ScrollText,
   Shield,
   User,
@@ -53,12 +52,6 @@ const NAV = [
     label: "Custom roles",
     icon: KeyRound,
     permission: PermissionKey.CUSTOM_ROLE_MANAGE,
-  },
-  {
-    href: "/settings/integrations",
-    label: "Integrations",
-    icon: Plug,
-    permission: PermissionKey.SETTINGS_VIEW,
   },
   {
     href: "/settings/audit-log",

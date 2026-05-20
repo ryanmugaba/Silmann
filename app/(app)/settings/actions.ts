@@ -142,7 +142,40 @@ export async function upsertHouse(input: z.infer<typeof houseSchema>) {
 
 export async function updateUserRole(userId: string, role: string) {
   return withPermission(PermissionKey.USER_ROLE_CHANGE, async (ctx) => {
+    const { canChangeUserRole } = await import(
+      "@/lib/primitives/rbac/role-hierarchy"
+    );
+    const { isRole } = await import("@/lib/primitives/rbac/types");
+
+    if (!isRole(role)) {
+      return { error: "Invalid role" };
+    }
+
+    if (role === "owner" && ctx.role !== "owner") {
+      return { error: "Only the organisation owner can assign the owner role." };
+    }
+
     const supabase = await createClient();
+
+    const { data: target } = await supabase
+      .from("profiles")
+      .select("role")
+      .eq("id", userId)
+      .eq("organization_id", ctx.organization_id)
+      .single<{ role: string }>();
+
+    if (!target) {
+      return { error: "User not found" };
+    }
+
+    if (!isRole(target.role)) {
+      return { error: "User has an invalid role — contact support" };
+    }
+
+    const blockReason = canChangeUserRole(target.role, role);
+    if (blockReason) {
+      return { error: blockReason };
+    }
 
     const { error } = await supabase
       .from("profiles")

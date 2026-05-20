@@ -9,6 +9,7 @@ import {
 } from "@/lib/data/roster-queries";
 import { RosterCalendarClient } from "@/components/roster/roster-calendar-client";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/configured";
 
 export default async function RosterPage({
   searchParams,
@@ -41,13 +42,7 @@ export default async function RosterPage({
     .is("deleted_at", null)
     .order("name");
 
-  const houses =
-    houseRows && houseRows.length > 0
-      ? houseRows
-      : [
-          { id: "10000000-0000-4000-8000-000000000001", name: "Parramatta SIL" },
-          { id: "10000000-0000-4000-8000-000000000002", name: "Blacktown SIL" },
-        ];
+  const houses = houseRows ?? [];
 
   return (
     <div className="mx-auto max-w-[1400px] space-y-6">
@@ -67,7 +62,7 @@ export default async function RosterPage({
         initialShifts={shifts}
         availabilityCells={cells}
         houses={houses}
-        isMock={shiftsMock || availMock}
+        isMock={isSupabaseConfigured() ? false : shiftsMock || availMock}
         initialCreateOpen={searchParams?.action === "create-shift"}
       />
     </div>

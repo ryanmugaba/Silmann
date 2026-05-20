@@ -11,7 +11,7 @@ import {
 } from "@/lib/primitives/rules/integrations/worker-compliance";
 import { withPermission } from "@/lib/primitives/rbac/server";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/configured";
 import {
   approveComplianceDocSchema,
@@ -78,10 +78,7 @@ export async function inviteWorker(formData: FormData) {
     }
 
     if (!isSupabaseConfigured()) {
-      return actionSuccess(
-        { inviteToken: "mock-invite-token" },
-        "Demo mode: invitation recorded locally."
-      );
+      return actionError("Database is not configured. Cannot invite workers.");
     }
 
     const supabase = await createClient();
@@ -186,16 +183,71 @@ export async function submitComplianceDoc(formData: FormData) {
     }
 
     if (!isSupabaseConfigured()) {
-      revalidatePath("/my-compliance");
-      return actionSuccess(undefined, "Demo mode: document submitted for approval.");
+      return actionError("Database is not configured. Cannot submit compliance documents.");
     }
 
     const supabase = await createClient();
+    const service = createServiceClient();
+
+    let { data: worker } = await supabase
+      .from("workers")
+      .select("id, worker_profile_id")
+      .eq("id", parsed.data.workerId)
+      .eq("organization_id", ctx.organization_id)
+      .is("deleted_at", null)
+      .maybeSingle<{ id: string; worker_profile_id: string }>();
+
+    if (!worker && ctx.role === "support_worker") {
+      const { data: byProfile } = await service
+        .from("workers")
+        .select("id, worker_profile_id")
+        .eq("worker_profile_id", ctx.user_id)
+        .eq("organization_id", ctx.organization_id)
+        .is("deleted_at", null)
+        .maybeSingle<{ id: string; worker_profile_id: string }>();
+
+      if (!byProfile) {
+        const { data: created, error: createError } = await service
+          .from("workers")
+          .insert({
+            organization_id: ctx.organization_id,
+            worker_profile_id: ctx.user_id,
+            status: "active",
+            created_by: ctx.user_id,
+            updated_by: ctx.user_id,
+          })
+          .select("id, worker_profile_id")
+          .single<{ id: string; worker_profile_id: string }>();
+
+        if (createError || !created) {
+          return actionError(
+            createError?.message ?? "Could not create your worker profile."
+          );
+        }
+        worker = created;
+      } else {
+        worker = byProfile;
+      }
+    }
+
+    if (!worker) {
+      return actionError(
+        "Worker profile not found. Ask your manager to complete your worker setup first."
+      );
+    }
+
+    if (
+      ctx.role === "support_worker" &&
+      worker.worker_profile_id !== ctx.user_id
+    ) {
+      return actionError("You can only submit compliance documents for your own profile.");
+    }
+
     const { data, error } = await supabase
       .from("compliance_documents")
       .insert({
         organization_id: ctx.organization_id,
-        worker_id: parsed.data.workerId,
+        worker_id: worker.id,
         doc_type: parsed.data.docType,
         doc_name: parsed.data.docName,
         file_url: parsed.data.fileUrl || null,

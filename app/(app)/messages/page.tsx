@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { MessagesView } from "@/components/messaging/messages-view";
+import { ensureOrgTeamChannel } from "@/lib/messaging/ensure-team-channel";
 import { getPermissionContext, can } from "@/lib/primitives/rbac";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { createClient } from "@/lib/supabase/server";
@@ -15,6 +16,8 @@ export default async function MessagesPage() {
   if (!can(ctx, PermissionKey.MESSAGE_VIEW)) {
     redirect("/dashboard");
   }
+
+  await ensureOrgTeamChannel(ctx.organization_id, ctx.user_id);
 
   const supabase = await createClient();
 

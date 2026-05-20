@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
-import { createClient } from "@/lib/supabase/server";
+import { createClient, createServiceClient } from "@/lib/supabase/server";
 import { withPermission } from "@/lib/primitives/rbac/server";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { parseMentionNames } from "@/lib/messaging/mentions";
@@ -389,10 +389,15 @@ export async function createDmChannel(targetUserId: string) {
       return { error: error?.message ?? "Could not create DM" };
     }
 
-    await supabase.from("channel_members").insert([
+    const service = createServiceClient();
+    const { error: memberError } = await service.from("channel_members").insert([
       { channel_id: channel.id, user_id: ctx.user_id },
       { channel_id: channel.id, user_id: targetUserId },
     ]);
+
+    if (memberError) {
+      return { error: memberError.message };
+    }
 
     revalidatePath("/messages");
     return { success: true, channelId: channel.id };

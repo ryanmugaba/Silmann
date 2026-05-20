@@ -14,7 +14,7 @@ export default async function MyAvailabilityPage() {
     redirect("/dashboard");
   }
 
-  const { cells, lockedDates, isMock } = await getWorkerAvailability(
+  const { cells, lockedDates } = await getWorkerAvailability(
     ctx.user_id,
     ctx.organization_id
   );
@@ -31,11 +31,7 @@ export default async function MyAvailabilityPage() {
         </p>
       </div>
 
-      <MyAvailabilityClient
-        initialCells={cells}
-        lockedDates={lockedDates}
-        isMock={isMock}
-      />
+      <MyAvailabilityClient initialCells={cells} lockedDates={lockedDates} />
     </div>
   );
 }

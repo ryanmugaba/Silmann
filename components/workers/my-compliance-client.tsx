@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { ComplianceDocCard } from "@/components/workers/compliance-doc-card";
 import { Button } from "@/components/ui/button";
@@ -27,38 +28,47 @@ import { toast } from "sonner";
 export function MyComplianceClient({
   documents,
   workerId,
-  isMock,
 }: {
   documents: ComplianceDocument[];
   workerId: string;
-  isMock?: boolean;
 }) {
+  const router = useRouter();
   const [open, setOpen] = useState(false);
   const [docType, setDocType] = useState<ComplianceDocType>("other");
   const [expiryDate, setExpiryDate] = useState("");
+  const [fieldError, setFieldError] = useState<string | null>(null);
+  const [pending, startTransition] = useTransition();
 
-  const handleSubmit = async () => {
+  const handleSubmit = () => {
+    setFieldError(null);
+    if (!expiryDate) {
+      setFieldError("Expiry date is required");
+      return;
+    }
     const fd = new FormData();
     fd.set("workerId", workerId);
     fd.set("docType", docType);
     fd.set("docName", COMPLIANCE_DOC_LABELS[docType]);
     fd.set("expiryDate", expiryDate);
-    const result = await submitComplianceDoc(fd);
-    if (result.success) {
-      toast.success("Document submitted for manager approval");
-      setOpen(false);
-    } else toast.error(result.error);
+    startTransition(async () => {
+      const result = await submitComplianceDoc(fd);
+      if (result.success) {
+        toast.success(result.message ?? "Document submitted for manager approval");
+        setOpen(false);
+        setExpiryDate("");
+        router.refresh();
+      } else {
+        toast.error(result.error);
+        if (result.fieldErrors?.expiryDate?.[0]) {
+          setFieldError(result.fieldErrors.expiryDate[0]);
+        }
+      }
+    });
   };
 
   return (
     <div className="space-y-4">
-      {isMock ? (
-        <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
-          Demo mode — submissions are simulated.
-        </p>
-      ) : null}
-
-      <Button onClick={() => setOpen(true)}>
+      <Button onClick={() => setOpen(true)} disabled={pending}>
         <Plus className="mr-2 h-4 w-4" strokeWidth={1.5} />
         Submit new document
       </Button>
@@ -78,7 +88,7 @@ export function MyComplianceClient({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Submit document renewal</DialogTitle>
+            <DialogTitle>Submit compliance document</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
             <div className="space-y-2">
@@ -106,10 +116,14 @@ export function MyComplianceClient({
                 type="date"
                 value={expiryDate}
                 onChange={(e) => setExpiryDate(e.target.value)}
+                aria-invalid={Boolean(fieldError)}
               />
+              {fieldError ? (
+                <p className="text-sm text-destructive">{fieldError}</p>
+              ) : null}
             </div>
-            <Button className="w-full" onClick={() => void handleSubmit()}>
-              Submit for approval
+            <Button className="w-full" onClick={handleSubmit} disabled={pending}>
+              {pending ? "Submitting…" : "Submit for approval"}
             </Button>
           </div>
         </DialogContent>

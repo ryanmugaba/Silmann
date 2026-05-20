@@ -596,12 +596,27 @@ export async function submitAvailability(formData: FormData) {
     }
 
     if (!isSupabaseConfigured()) {
-      revalidatePath("/my-availability");
-      return actionSuccess(undefined, "Demo mode: availability submitted.");
+      return actionError("Supabase is not configured. Connect your database to submit availability.");
     }
 
-    const supabase = createServiceClient();
-    const rows = parsed.data.cells.map((cell) => ({
+    const supabase = await createClient();
+    const dates = Array.from(new Set(parsed.data.cells.map((c) => c.date)));
+
+    const { data: lockedRows } = await supabase
+      .from("worker_availability")
+      .select("date")
+      .eq("worker_id", ctx.user_id)
+      .in("date", dates)
+      .not("locked_at", "is", null);
+
+    const lockedDates = new Set((lockedRows ?? []).map((r) => r.date));
+    const editableCells = parsed.data.cells.filter((c) => !lockedDates.has(c.date));
+
+    if (editableCells.length === 0) {
+      return actionError("Selected dates are locked and cannot be changed.");
+    }
+
+    const rows = editableCells.map((cell) => ({
       organization_id: ctx.organization_id,
       worker_id: ctx.user_id,
       date: cell.date,
@@ -620,7 +635,10 @@ export async function submitAvailability(formData: FormData) {
 
     revalidatePath("/my-availability");
     revalidatePath("/roster");
-    return actionSuccess(undefined, "Availability submitted");
+    return actionSuccess(
+      undefined,
+      `Availability saved for ${editableCells.length} day(s)`
+    );
   });
 }
 

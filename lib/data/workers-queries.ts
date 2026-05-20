@@ -91,7 +91,7 @@ export async function listWorkers(
   organizationId: string
 ): Promise<{ workers: WorkerListItem[]; isMock: boolean }> {
   if (!isSupabaseConfigured()) {
-    return { workers: MOCK_WORKERS, isMock: true };
+    return { workers: [], isMock: false };
   }
 
   const supabase = await createClient();
@@ -354,17 +354,7 @@ export async function listWorkerComplianceForProfile(
   organizationId: string
 ): Promise<{ documents: ComplianceDocument[]; workerId: string | null; isMock: boolean }> {
   if (!isSupabaseConfigured()) {
-    const worker = MOCK_WORKERS.find((w) => w.profileId === profileId);
-    const docs = worker
-      ? getMockWorkerDetail(worker.id)?.documents ?? []
-      : MOCK_WORKERS[0]
-        ? getMockWorkerDetail(MOCK_WORKERS[0].id)?.documents ?? []
-        : [];
-    return {
-      documents: docs,
-      workerId: worker?.id ?? MOCK_WORKERS[0]?.id ?? null,
-      isMock: true,
-    };
+    return { documents: [], workerId: null, isMock: false };
   }
 
   const supabase = await createClient();

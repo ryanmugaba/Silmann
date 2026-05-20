@@ -30,7 +30,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         role: "assistant",
         content:
-          "Silman AI is not configured yet. Add a real OPENAI_API_KEY to .env.local (replace REPLACE_WITH_OPENAI_API_KEY), then restart npm run dev. Check Settings → Integrations for status.",
+          "Silman AI is not configured yet. Add OPENAI_API_KEY to .env.local, then restart npm run dev.",
         toolCalls: [],
       });
     }
