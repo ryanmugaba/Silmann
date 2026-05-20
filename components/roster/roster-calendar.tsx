@@ -19,7 +19,6 @@ type HouseOption = { id: string; name: string };
 export type RosterCalendarProps = {
   initialShifts: ShiftRecord[];
   houses: HouseOption[];
-  isMock?: boolean;
 };
 
 type CalendarView = "dayGridDay" | "timeGridWeek" | "dayGridMonth";
@@ -27,7 +26,6 @@ type CalendarView = "dayGridDay" | "timeGridWeek" | "dayGridMonth";
 export function RosterCalendar({
   initialShifts,
   houses,
-  isMock,
 }: RosterCalendarProps) {
   const calendarRef = useRef<FullCalendar>(null);
   const [shifts, setShifts] = useState(initialShifts);
@@ -122,12 +120,6 @@ export function RosterCalendar({
 
   return (
     <div className="space-y-4">
-      {isMock ? (
-        <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
-          Showing demo roster data — connect Supabase to load live shifts.
-        </p>
-      ) : null}
-
       <div className="flex flex-wrap items-center gap-2">
         <div className="flex rounded-xl border bg-card p-0.5">
           {(

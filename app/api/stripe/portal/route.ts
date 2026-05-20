@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { getPermissionContext } from "@/lib/primitives/rbac/server";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { can } from "@/lib/primitives/rbac/check";
+import { USER_ERROR_UNAVAILABLE } from "@/lib/errors/public";
 
 function appUrl(): string {
   return (process.env.NEXT_PUBLIC_APP_URL ?? "http://localhost:3000").replace(
@@ -14,7 +15,7 @@ function appUrl(): string {
 
 export async function POST() {
   if (!isStripeConfigured()) {
-    return NextResponse.json({ error: "Stripe is not configured." }, { status: 503 });
+    return NextResponse.json({ error: USER_ERROR_UNAVAILABLE }, { status: 503 });
   }
 
   const ctx = await getPermissionContext();

@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { isSupabaseConfigured } from "@/lib/supabase/configured";
 
 type CookieToSet = {
   name: string;
@@ -8,18 +9,9 @@ type CookieToSet = {
 };
 
 function getSupabaseEnv(): { url: string; anonKey: string } | null {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-  if (!url || !anonKey) return null;
-  if (url.includes("placeholder") || url.includes("your-project") || url.includes("xxxxxxxx")) {
-    return null;
-  }
-  if (anonKey.includes("your-anon") || anonKey.endsWith("...")) return null;
-  try {
-    new URL(url);
-  } catch {
-    return null;
-  }
+  if (!isSupabaseConfigured()) return null;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL!.trim();
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!.trim();
   return { url, anonKey };
 }
 
@@ -34,7 +26,8 @@ function isAuthExemptPath(pathname: string): boolean {
     pathname === "/terms" ||
     pathname.startsWith("/invite") ||
     pathname.startsWith("/forgot-password") ||
-    pathname.startsWith("/reset-password")
+    pathname.startsWith("/reset-password") ||
+    pathname.startsWith("/setup")
   );
 }
 

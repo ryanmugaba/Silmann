@@ -159,8 +159,7 @@ export function BillingClient({
 
           {!stripeConfigured ? (
             <p className="rounded-xl border border-dashed border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
-              Stripe is not configured yet. Add <code className="text-xs">STRIPE_SECRET_KEY</code>{" "}
-              and <code className="text-xs">STRIPE_PRICE_ID</code> to your environment.
+              Billing is not available right now. Please try again later.
             </p>
           ) : null}
 

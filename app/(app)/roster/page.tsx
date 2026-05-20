@@ -9,8 +9,6 @@ import {
 } from "@/lib/data/roster-queries";
 import { RosterCalendarClient } from "@/components/roster/roster-calendar-client";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured } from "@/lib/supabase/configured";
-
 export default async function RosterPage({
   searchParams,
 }: {
@@ -24,8 +22,7 @@ export default async function RosterPage({
   const rangeStart = startOfWeek(new Date(), { weekStartsOn: 1 });
   const rangeEnd = endOfWeek(new Date(), { weekStartsOn: 1 });
 
-  const [{ shifts, isMock: shiftsMock }, { cells, isMock: availMock }] =
-    await Promise.all([
+  const [{ shifts }, { cells }] = await Promise.all([
       listShiftsInRange(
         ctx.organization_id,
         rangeStart.toISOString(),
@@ -62,7 +59,6 @@ export default async function RosterPage({
         initialShifts={shifts}
         availabilityCells={cells}
         houses={houses}
-        isMock={isSupabaseConfigured() ? false : shiftsMock || availMock}
         initialCreateOpen={searchParams?.action === "create-shift"}
       />
     </div>

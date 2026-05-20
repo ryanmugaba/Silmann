@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { safeActionError } from "@/lib/errors/action-safe";
 import { createServiceClient } from "@/lib/supabase/server";
 import { withPermission } from "@/lib/primitives/rbac/server";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
@@ -212,7 +213,7 @@ export async function acknowledgeAnnouncement(announcementId: string) {
     );
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "notice-board") };
     }
 
     revalidatePath("/notice-board");

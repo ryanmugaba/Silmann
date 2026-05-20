@@ -1,5 +1,6 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { getPermissionContext } from "@/lib/primitives/rbac";
+import { redirect } from "next/navigation";
+import { can, getPermissionContext } from "@/lib/primitives/rbac";
+import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { createClient } from "@/lib/supabase/server";
 import { HousesManager } from "@/components/settings/houses-manager";
 
@@ -7,6 +8,10 @@ export const metadata = { title: "Houses — Settings — Silman" };
 
 export default async function HousesSettingsPage() {
   const ctx = await getPermissionContext();
+  if (!can(ctx, PermissionKey.HOUSE_VIEW)) {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
 
   const { data: houses } = await supabase

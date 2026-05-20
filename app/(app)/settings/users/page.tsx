@@ -1,12 +1,18 @@
+import { redirect } from "next/navigation";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { UsersTable } from "@/components/settings/users-table";
-import { getPermissionContext } from "@/lib/primitives/rbac";
+import { can, getPermissionContext } from "@/lib/primitives/rbac";
+import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Users — Settings — Silman" };
 
 export default async function UsersSettingsPage() {
   const ctx = await getPermissionContext();
+  if (!can(ctx, PermissionKey.USER_INVITE)) {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
 
   const { data: users } = await supabase

@@ -9,7 +9,7 @@ export async function GET(request: Request) {
 
   if (!cronSecret) {
     return NextResponse.json(
-      { error: "CRON_SECRET is not configured." },
+      { error: "Service unavailable" },
       { status: 500 }
     );
   }

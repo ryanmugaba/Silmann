@@ -1,6 +1,5 @@
-import Link from "next/link";
 import { CreditCard } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { SignOutButton } from "@/components/auth/sign-out-button";
 import {
   Card,
   CardContent,
@@ -20,16 +19,11 @@ export default function SubscriptionRequiredPage() {
           <CardTitle className="font-display text-xl">Subscription required</CardTitle>
           <CardDescription>
             Your organisation&apos;s Silman subscription is not active. Ask your
-            organisation owner to complete billing in Settings.
+            organisation owner to complete billing in Settings → Billing.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-2">
-          <Button asChild variant="outline">
-            <Link href="/dashboard">Back to dashboard</Link>
-          </Button>
-          <Button asChild variant="ghost" size="sm">
-            <Link href="/login">Sign out</Link>
-          </Button>
+          <SignOutButton variant="outline" className="w-full" />
         </CardContent>
       </Card>
     </div>

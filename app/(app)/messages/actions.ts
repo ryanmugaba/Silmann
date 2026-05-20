@@ -10,6 +10,7 @@ import { processChannelAiMention } from "@/lib/messaging/process-ai-mention";
 import { getOrCreateShiftChannel } from "@/lib/messaging/shift-channel";
 import { mapRawMessage, type RawMessageRow } from "@/lib/messaging/message-mapper";
 import type { MessageWithAuthor } from "@/types/messaging";
+import { safeActionError } from "@/lib/errors/action-safe";
 
 const attachmentSchema = z.object({
   url: z.string().url(),
@@ -130,7 +131,7 @@ export async function sendMessage(input: z.infer<typeof sendMessageSchema>) {
       .single<{ id: string }>();
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "messages") };
     }
 
     const mentionNames = parseMentionNames(parsed.content);
@@ -230,7 +231,7 @@ export async function uploadMessageAttachment(formData: FormData) {
       .upload(path, file, { contentType: file.type, upsert: false });
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "messages") };
     }
 
     const { data } = supabase.storage.from("message-attachments").getPublicUrl(path);
@@ -303,7 +304,7 @@ export async function getChannelMembers(channelId: string) {
       .eq("channel_id", channelId);
 
     if (error) {
-      return { error: error.message, members: [] };
+      return { error: safeActionError(error, "messages"), members: [] };
     }
 
     type Row = {
@@ -423,7 +424,7 @@ export async function searchDmUsers(query: string) {
     const { data, error } = await builder;
 
     if (error) {
-      return { error: error.message, users: [] };
+      return { error: safeActionError(error, "messages"), users: [] };
     }
 
     return { users: data ?? [] };
@@ -468,7 +469,7 @@ export async function addReaction(input: z.infer<typeof reactionSchema>) {
       .eq("id", parsed.messageId);
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "messages") };
     }
 
     revalidatePath("/messages");
@@ -494,7 +495,7 @@ export async function editMessage(input: z.infer<typeof editMessageSchema>) {
       .is("deleted_at", null);
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "messages") };
     }
 
     revalidatePath("/messages");
@@ -517,7 +518,7 @@ export async function deleteMessage(messageId: string) {
       .eq("user_id", ctx.user_id);
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "messages") };
     }
 
     revalidatePath("/messages");
@@ -554,7 +555,7 @@ export async function loadOlderMessages(channelId: string, before: string) {
       .limit(30);
 
     if (error) {
-      return { error: error.message, messages: [] as MessageWithAuthor[] };
+      return { error: safeActionError(error, "messages"), messages: [] as MessageWithAuthor[] };
     }
 
     const messages = ((data ?? []) as RawMessageRow[])

@@ -2,7 +2,12 @@
 
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
-import { actionError, actionSuccess, zodFieldErrors } from "@/lib/actions/result";
+import {
+  actionError,
+  actionErrorPublic,
+  actionSuccess,
+  zodFieldErrors,
+} from "@/lib/actions/result";
 import { register } from "@/lib/primitives/countdown/engine";
 import { DEFAULT_COMPLIANCE_DOC } from "@/lib/primitives/countdown/types";
 import {
@@ -78,7 +83,7 @@ export async function inviteWorker(formData: FormData) {
     }
 
     if (!isSupabaseConfigured()) {
-      return actionError("Database is not configured. Cannot invite workers.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -94,7 +99,7 @@ export async function inviteWorker(formData: FormData) {
       expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
     });
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "workers");
 
     await writeAudit(
       ctx.organization_id,
@@ -127,7 +132,7 @@ export async function updateWorker(formData: FormData) {
 
     if (!isSupabaseConfigured()) {
       revalidatePath(`/workers/${parsed.data.workerId}`);
-      return actionSuccess(undefined, "Demo mode: worker updated.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -142,7 +147,7 @@ export async function updateWorker(formData: FormData) {
       .eq("id", parsed.data.workerId)
       .eq("organization_id", ctx.organization_id);
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "workers");
 
     if (parsed.data.phone) {
       const { data: worker } = await supabase
@@ -183,19 +188,21 @@ export async function submitComplianceDoc(formData: FormData) {
     }
 
     if (!isSupabaseConfigured()) {
-      return actionError("Database is not configured. Cannot submit compliance documents.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
     const service = createServiceClient();
 
-    let { data: worker } = await supabase
-      .from("workers")
-      .select("id, worker_profile_id")
-      .eq("id", parsed.data.workerId)
-      .eq("organization_id", ctx.organization_id)
-      .is("deleted_at", null)
-      .maybeSingle<{ id: string; worker_profile_id: string }>();
+    let { data: worker } = parsed.data.workerId
+      ? await supabase
+          .from("workers")
+          .select("id, worker_profile_id")
+          .eq("id", parsed.data.workerId)
+          .eq("organization_id", ctx.organization_id)
+          .is("deleted_at", null)
+          .maybeSingle<{ id: string; worker_profile_id: string }>()
+      : { data: null };
 
     if (!worker && ctx.role === "support_worker") {
       const { data: byProfile } = await service
@@ -220,9 +227,7 @@ export async function submitComplianceDoc(formData: FormData) {
           .single<{ id: string; worker_profile_id: string }>();
 
         if (createError || !created) {
-          return actionError(
-            createError?.message ?? "Could not create your worker profile."
-          );
+          return actionErrorPublic(createError, "workers/create-profile");
         }
         worker = created;
       } else {
@@ -261,7 +266,7 @@ export async function submitComplianceDoc(formData: FormData) {
       .select("id")
       .single();
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "workers");
 
     revalidatePath("/my-compliance");
     revalidatePath("/workers");
@@ -281,7 +286,7 @@ export async function approveComplianceDoc(formData: FormData) {
 
     if (!isSupabaseConfigured()) {
       revalidatePath("/workers");
-      return actionSuccess(undefined, "Demo mode: document approved.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -304,7 +309,7 @@ export async function approveComplianceDoc(formData: FormData) {
       })
       .eq("id", parsed.data.documentId);
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "workers");
 
     if (doc.expiry_date) {
       await register(
@@ -350,7 +355,7 @@ export async function rejectComplianceDoc(formData: FormData) {
 
     if (!isSupabaseConfigured()) {
       revalidatePath("/workers");
-      return actionSuccess(undefined, "Demo mode: document rejected.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -370,7 +375,7 @@ export async function rejectComplianceDoc(formData: FormData) {
       .eq("id", parsed.data.documentId)
       .eq("organization_id", ctx.organization_id);
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "workers");
 
     if (doc?.worker_id) {
       revalidatePath(`/workers/${doc.worker_id}`);
@@ -407,7 +412,7 @@ export async function archiveWorker(workerId: string) {
   return withPermission(PermissionKey.WORKER_ARCHIVE, async (ctx) => {
     if (!isSupabaseConfigured()) {
       revalidatePath("/workers");
-      return actionSuccess(undefined, "Demo mode: worker archived.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -421,7 +426,7 @@ export async function archiveWorker(workerId: string) {
       .eq("id", workerId)
       .eq("organization_id", ctx.organization_id);
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "workers");
 
     revalidatePath("/workers");
     return actionSuccess(undefined, "Worker archived");
@@ -460,7 +465,7 @@ export async function addWorkerRule(formData: FormData) {
 
     if (!isSupabaseConfigured()) {
       revalidatePath(`/workers/${parsed.data.workerId}`);
-      return actionSuccess({ id: crypto.randomUUID() }, "Demo mode: rule added.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -482,7 +487,7 @@ export async function addWorkerRule(formData: FormData) {
       .select("id")
       .single();
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "workers");
 
     revalidatePath(`/workers/${parsed.data.workerId}`);
     return actionSuccess({ id: data?.id ?? "" }, "Rule added");
@@ -500,7 +505,7 @@ export async function removeWorkerRule(formData: FormData) {
 
     if (!isSupabaseConfigured()) {
       revalidatePath(`/workers/${workerId}`);
-      return actionSuccess(undefined, "Demo mode: rule removed.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -515,7 +520,7 @@ export async function removeWorkerRule(formData: FormData) {
       .eq("organization_id", ctx.organization_id)
       .eq("entity_type", "worker");
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "workers");
 
     revalidatePath(`/workers/${workerId}`);
     return actionSuccess(undefined, "Rule removed");

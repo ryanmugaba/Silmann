@@ -1,12 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured, shouldUseMockData } from "@/lib/supabase/configured";
+import { isSupabaseConfigured } from "@/lib/supabase/configured";
 import { computeCountdownStatus } from "@/lib/primitives/countdown/compute";
 import { DEFAULT_COMPLIANCE_DOC } from "@/lib/primitives/countdown/types";
-import {
-  getMockPendingCompliance,
-  getMockWorkerDetail,
-  MOCK_WORKERS,
-} from "@/lib/data/mock-workers";
 import type {
   ComplianceDocument,
   ComplianceStatus,
@@ -89,9 +84,9 @@ function mapComplianceRow(row: {
 
 export async function listWorkers(
   organizationId: string
-): Promise<{ workers: WorkerListItem[]; isMock: boolean }> {
+): Promise<{ workers: WorkerListItem[] }> {
   if (!isSupabaseConfigured()) {
-    return { workers: [], isMock: false };
+    return { workers: [] };
   }
 
   const supabase = await createClient();
@@ -116,10 +111,10 @@ export async function listWorkers(
     .is("deleted_at", null);
 
   if (error) {
-    return { workers: [], isMock: false };
+    return { workers: [] };
   }
   if (!workerRows?.length) {
-    return { workers: [], isMock: false };
+    return { workers: [] };
   }
 
   const profileIds = workerRows.map(
@@ -191,15 +186,15 @@ export async function listWorkers(
     }
   }
 
-  return { workers, isMock: false };
+  return { workers };
 }
 
 export async function getWorkerById(
   id: string,
   organizationId: string
-): Promise<{ worker: WorkerDetail | null; isMock: boolean }> {
+): Promise<{ worker: WorkerDetail | null }> {
   if (!isSupabaseConfigured()) {
-    return { worker: getMockWorkerDetail(id), isMock: true };
+    return { worker: null };
   }
 
   const supabase = await createClient();
@@ -247,7 +242,7 @@ export async function getWorkerById(
     }>();
 
   if (error || !row) {
-    return { worker: getMockWorkerDetail(id), isMock: true };
+    return { worker: null };
   }
 
   const { data: docRows } = await supabase
@@ -264,8 +259,17 @@ export async function getWorkerById(
 
   const profile = row.profiles;
 
+  const { data: assignments } = await supabase
+    .from("house_assignments")
+    .select("houses(name)")
+    .eq("user_id", row.worker_profile_id)
+    .returns<{ houses: { name: string } | null }[]>();
+
+  const houseNames = (assignments ?? [])
+    .map((a) => a.houses?.name)
+    .filter((name): name is string => Boolean(name));
+
   return {
-    isMock: false,
     worker: {
       id: row.id,
       profileId: row.worker_profile_id,
@@ -275,7 +279,7 @@ export async function getWorkerById(
       role: profile?.role ?? "support_worker",
       employmentType: row.employment_type,
       status: row.status,
-      houseNames: [],
+      houseNames,
       complianceSummary: summary,
       pendingDocCount: pending,
       phone: profile?.phone ?? null,
@@ -291,17 +295,9 @@ export async function getWorkerById(
 
 export async function listPendingCompliance(
   organizationId: string
-): Promise<{ documents: PendingComplianceItem[]; isMock: boolean }> {
+): Promise<{ documents: PendingComplianceItem[] }> {
   if (!isSupabaseConfigured()) {
-    const docs = getMockPendingCompliance();
-    const byWorker = new Map(MOCK_WORKERS.map((w) => [w.id, w.fullName]));
-    return {
-      documents: docs.map((d) => ({
-        ...d,
-        workerName: byWorker.get(d.workerId) ?? "Unknown worker",
-      })),
-      isMock: true,
-    };
+    return { documents: [] };
   }
 
   const supabase = await createClient();
@@ -322,15 +318,7 @@ export async function listPendingCompliance(
     .order("submitted_at", { ascending: true });
 
   if (error || !data?.length) {
-    const docs = getMockPendingCompliance();
-    const byWorker = new Map(MOCK_WORKERS.map((w) => [w.id, w.fullName]));
-    return {
-      documents: docs.map((d) => ({
-        ...d,
-        workerName: byWorker.get(d.workerId) ?? "Unknown worker",
-      })),
-      isMock: true,
-    };
+    return { documents: [] };
   }
 
   type PendingComplianceRow = Parameters<typeof mapComplianceRow>[0] & {
@@ -345,16 +333,15 @@ export async function listPendingCompliance(
         workerName: row.workers?.profiles?.full_name ?? "Unknown worker",
       };
     }),
-    isMock: false,
   };
 }
 
 export async function listWorkerComplianceForProfile(
   profileId: string,
   organizationId: string
-): Promise<{ documents: ComplianceDocument[]; workerId: string | null; isMock: boolean }> {
+): Promise<{ documents: ComplianceDocument[]; workerId: string | null }> {
   if (!isSupabaseConfigured()) {
-    return { documents: [], workerId: null, isMock: false };
+    return { documents: [], workerId: null };
   }
 
   const supabase = await createClient();
@@ -367,7 +354,7 @@ export async function listWorkerComplianceForProfile(
     .maybeSingle();
 
   if (!worker) {
-    return { documents: [], workerId: null, isMock: false };
+    return { documents: [], workerId: null };
   }
 
   const { data } = await supabase
@@ -382,6 +369,5 @@ export async function listWorkerComplianceForProfile(
     documents: (data ?? []).map((d) =>
       mapComplianceRow(d as Parameters<typeof mapComplianceRow>[0])
     ),
-    isMock: false,
   };
 }

@@ -23,7 +23,7 @@ export default async function WorkerDetailPage({
     redirect("/dashboard");
   }
 
-  const { worker, isMock } = await getWorkerById(id, ctx.organization_id);
+  const { worker } = await getWorkerById(id, ctx.organization_id);
   if (!worker) notFound();
 
   const pendingDocs = worker.documents.filter(
@@ -72,10 +72,6 @@ export default async function WorkerDetailPage({
           ) : null}
         </CardContent>
       </Card>
-
-      {isMock ? (
-        <p className="text-sm text-muted-foreground">Demo data mode</p>
-      ) : null}
 
       <WorkerDetailTabs workerId={id} />
 

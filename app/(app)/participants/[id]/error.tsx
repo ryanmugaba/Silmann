@@ -25,7 +25,7 @@ export default function ParticipantDetailError({
         Could not load participant
       </h2>
       <p className="text-sm text-muted-foreground">
-        {error.message || "Something went wrong."}
+        Something went wrong. Please try again or contact your administrator.
       </p>
       <div className="flex gap-3">
         <Button onClick={reset} className="rounded-xl">

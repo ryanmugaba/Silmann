@@ -138,6 +138,11 @@ export function InviteWorkerDialog({ houses }: InviteWorkerDialogProps) {
             </div>
             <div className="space-y-2">
               <Label>Houses</Label>
+              {houses.length === 0 ? (
+                <p className="rounded-xl border border-dashed bg-muted/40 px-3 py-2 text-sm text-muted-foreground">
+                  Add at least one house under Settings → Houses before inviting workers.
+                </p>
+              ) : null}
               <div className="space-y-2 rounded-xl border p-3">
                 {houses.map((house) => (
                   <label
@@ -166,7 +171,7 @@ export function InviteWorkerDialog({ houses }: InviteWorkerDialogProps) {
               <Button
                 type="submit"
                 className="rounded-xl"
-                disabled={pending || selectedHouses.size === 0}
+                disabled={pending || selectedHouses.size === 0 || houses.length === 0}
               >
                 {pending ? "Sending…" : "Send invitation"}
               </Button>

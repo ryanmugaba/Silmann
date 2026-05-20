@@ -1,19 +1,26 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 import { ParticipantsList } from "@/components/participants/participants-list";
 import { Button } from "@/components/ui/button";
-import { checkPermission } from "@/lib/primitives/rbac";
+import { can, getPermissionContext } from "@/lib/primitives/rbac";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { createClient } from "@/lib/supabase/server";
 import type { HouseRow, ParticipantRow } from "@/types/database";
 
 export default async function ParticipantsPage() {
+  const ctx = await getPermissionContext();
+  if (!can(ctx, PermissionKey.PARTICIPANT_VIEW)) {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
-  const canCreate = await checkPermission(PermissionKey.PARTICIPANT_CREATE);
+  const canCreate = can(ctx, PermissionKey.PARTICIPANT_CREATE);
 
   const { data: participantRows } = await supabase
     .from("participants")
     .select("*")
+    .eq("organization_id", ctx.organization_id)
     .is("deleted_at", null)
     .order("full_name")
     .returns<ParticipantRow[]>();
@@ -21,6 +28,7 @@ export default async function ParticipantsPage() {
   const { data: houseRows } = await supabase
     .from("houses")
     .select("id, name")
+    .eq("organization_id", ctx.organization_id)
     .is("deleted_at", null)
     .order("name")
     .returns<Pick<HouseRow, "id" | "name">[]>();

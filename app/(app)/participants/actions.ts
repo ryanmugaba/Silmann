@@ -4,10 +4,12 @@ import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import {
   actionError,
+  actionErrorPublic,
   actionSuccess,
   zodFieldErrors,
   type ActionResult,
 } from "@/lib/actions/result";
+import { USER_ERROR } from "@/lib/errors/public";
 import * as countdown from "@/lib/primitives/countdown/engine";
 import {
   DEFAULT_MEDICATION,
@@ -106,7 +108,7 @@ async function runWithPermission<T>(
     return await withPermission(permission, handler, resource);
   } catch (error) {
     if (error instanceof ForbiddenError) {
-      return actionError(error.message);
+      return actionError(USER_ERROR);
     }
     throw error;
   }
@@ -116,8 +118,7 @@ async function getParticipantHouseId(
   participantId: string
 ): Promise<string | null> {
   if (!isSupabaseConfigured()) {
-    const { getMockParticipantById } = await import("@/lib/data/mock-participants");
-    return getMockParticipantById(participantId)?.house_id ?? null;
+    return null;
   }
 
   const supabase = await createClient();
@@ -145,12 +146,7 @@ export async function createParticipant(
     { house_id: data.house_id },
     async (ctx) => {
       if (!isSupabaseConfigured()) {
-        const mockId = crypto.randomUUID();
-        revalidateParticipants(mockId);
-        return actionSuccess(
-          { id: mockId },
-          "Demo mode: participant recorded locally."
-        );
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -192,7 +188,7 @@ export async function createParticipant(
         .single<Pick<ParticipantRow, "id" | "plan_end_date" | "full_name">>();
 
       if (error || !row) {
-        return actionError(error?.message ?? "Failed to create participant");
+        return actionErrorPublic(error, "participants/create");
       }
 
       if (row.plan_end_date) {
@@ -261,8 +257,7 @@ export async function updateParticipant(
     { house_id: fields.house_id ?? scopeHouseId },
     async (ctx) => {
       if (!isSupabaseConfigured()) {
-        revalidateParticipants(id);
-        return actionSuccess(undefined, "Demo mode: update recorded locally.");
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -349,7 +344,7 @@ export async function updateParticipant(
         .eq("id", id);
 
       if (error) {
-        return actionError(error.message);
+        return actionErrorPublic(error, "participants");
       }
 
       const planEnd = fields.plan_end_date ?? existing.plan_end_date;
@@ -426,7 +421,7 @@ export async function archiveParticipant(
     async (ctx) => {
       if (!isSupabaseConfigured()) {
         revalidateParticipants(parsed.data.id);
-        return actionSuccess(undefined, "Demo mode: participant archived locally.");
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -448,7 +443,7 @@ export async function archiveParticipant(
         .eq("id", parsed.data.id);
 
       if (error) {
-        return actionError(error.message);
+        return actionErrorPublic(error, "participants");
       }
 
       await writeAudit(
@@ -486,11 +481,7 @@ export async function addMedication(
     { house_id: houseId },
     async (ctx) => {
       if (!isSupabaseConfigured()) {
-        revalidateParticipants(data.participant_id);
-        return actionSuccess(
-          { id: crypto.randomUUID() },
-          "Demo mode: medication recorded locally."
-        );
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -597,8 +588,7 @@ export async function ceaseMedication(
     { house_id: houseId },
     async (ctx) => {
       if (!isSupabaseConfigured()) {
-        revalidateParticipants(parsed.data.participant_id);
-        return actionSuccess(undefined, "Demo mode: medication ceased locally.");
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -612,7 +602,7 @@ export async function ceaseMedication(
         .eq("id", parsed.data.medication_id);
 
       if (error) {
-        return actionError(error.message);
+        return actionErrorPublic(error, "participants");
       }
 
       const { data: countdownRows } = await supabase
@@ -661,8 +651,7 @@ export async function logPRNAdministration(
     { house_id: houseId },
     async (ctx) => {
       if (!isSupabaseConfigured()) {
-        revalidateParticipants(data.participant_id);
-        return actionSuccess(undefined, "Demo mode: administration logged locally.");
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -680,7 +669,7 @@ export async function logPRNAdministration(
       });
 
       if (error) {
-        return actionError(error.message);
+        return actionErrorPublic(error, "participants");
       }
 
       await writeAudit(
@@ -720,11 +709,7 @@ export async function addParticipantRule(
     { house_id: houseId },
     async (ctx) => {
       if (!isSupabaseConfigured()) {
-        revalidateParticipants(data.participant_id);
-        return actionSuccess(
-          { id: crypto.randomUUID() },
-          "Demo mode: rule recorded locally."
-        );
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -779,7 +764,7 @@ export async function addParticipantRule(
         .single<{ id: string }>();
 
       if (error || !inserted) {
-        return actionError(error?.message ?? "Failed to add rule");
+        return actionErrorPublic(error, "participants/rule");
       }
 
       await writeAudit(
@@ -816,8 +801,7 @@ export async function removeParticipantRule(
     { house_id: houseId },
     async (ctx) => {
       if (!isSupabaseConfigured()) {
-        revalidateParticipants(parsed.data.participant_id);
-        return actionSuccess(undefined, "Demo mode: rule removed locally.");
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -839,7 +823,7 @@ export async function removeParticipantRule(
         .eq("entity_id", parsed.data.participant_id);
 
       if (error) {
-        return actionError(error.message);
+        return actionErrorPublic(error, "participants");
       }
 
       await writeAudit(

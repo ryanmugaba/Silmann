@@ -20,6 +20,11 @@ import { can } from "@/lib/primitives/rbac/check";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import type { RosteringToolName } from "@/lib/ai/rostering-tools";
 import { isSupabaseConfigured } from "@/lib/supabase/configured";
+import { USER_ERROR } from "@/lib/errors/public";
+
+function toolUnavailable() {
+  return { result: { success: false as const, error: USER_ERROR } };
+}
 
 const NAVIGATION_PATHS = {
   dashboard: "/dashboard",
@@ -116,25 +121,7 @@ export async function executeRosterTool(
         return { error: "Permission denied: roster:create" };
       }
 
-      if (!isSupabaseConfigured()) {
-        return {
-          result: {
-            success: true,
-            data: { shiftId: `mock-${Date.now()}` },
-            message: "Demo mode: shift would be created.",
-          },
-          preview: {
-            house_id: input.house_id,
-            participant_id: input.participant_id ?? null,
-            worker_id: input.worker_id ?? null,
-            start: input.start,
-            end: input.end,
-            shift_type: input.shift_type,
-            ratio: input.ratio ?? "1:1",
-            notes: input.notes ?? null,
-          },
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
 
       const fd = new FormData();
       fd.set("houseId", String(input.house_id));
@@ -154,12 +141,7 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.ROSTER_EDIT)) {
         return { error: "Permission denied: roster:edit" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: shift would be updated." },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       const fd = formDataFrom(input, {
         shift_id: "shiftId",
         start: "startAt",
@@ -173,12 +155,7 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.ROSTER_EDIT)) {
         return { error: "Permission denied: roster:edit" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: shift would be cancelled." },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       const fd = formDataFrom(input, {
         shift_id: "shiftId",
         reason: "reason",
@@ -190,14 +167,14 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.ROSTER_VIEW)) {
         return { error: "Permission denied" };
       }
-      const { cells, isMock } = await getAvailabilityGrid(
+      const { cells } = await getAvailabilityGrid(
         ctx.organization_id,
         input.house_id ? String(input.house_id) : undefined
       );
       const start = String(input.date_range_start);
       const end = String(input.date_range_end);
       const filtered = cells.filter((c) => c.date >= start && c.date <= end);
-      return { availability: filtered, isMock };
+      return { availability: filtered };
     }
 
     case "submit_availability": {
@@ -207,12 +184,7 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.AVAILABILITY_SUBMIT, { user_id: ctx.user_id })) {
         return { error: "Permission denied: availability:submit" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: availability would be submitted." },
-          preview: { cells: input.cells ?? [] },
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       const fd = new FormData();
       fd.set("cells", JSON.stringify(input.cells ?? []));
       return { result: await submitAvailability(fd) };
@@ -222,12 +194,7 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.SHIFT_SWAP_REQUEST, { user_id: ctx.user_id })) {
         return { error: "Permission denied: shift_swap:request" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: swap request would be submitted." },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       const fd = formDataFrom(input, {
         shift_id: "shiftId",
         target_worker_id: "targetWorkerId",
@@ -270,25 +237,20 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.ROSTER_VIEW)) {
         return { error: "Permission denied" };
       }
-      const { shifts, isMock } = await listShiftsInRange(
+      const { shifts } = await listShiftsInRange(
         ctx.organization_id,
         `${input.date_range_start}T00:00:00.000Z`,
         `${input.date_range_end}T23:59:59.999Z`,
         { status: "unfilled" }
       );
-      return { shifts, isMock };
+      return { shifts };
     }
 
     case "create_reminder": {
       if (!can(ctx, PermissionKey.REMINDER_EDIT)) {
         return { error: "Permission denied: reminder:edit" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: reminder would be created." },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       return {
         result: await createReminder({
           title: String(input.title),
@@ -306,12 +268,7 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.REMINDER_EDIT)) {
         return { error: "Permission denied: reminder:edit" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: reminder would be completed." },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       return { result: await completeReminder(String(input.reminder_id)) };
     }
 
@@ -319,12 +276,7 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.REMINDER_EDIT)) {
         return { error: "Permission denied: reminder:edit" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: reminder would be snoozed." },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       return {
         result: await snoozeReminder(String(input.reminder_id), String(input.until)),
       };
@@ -364,12 +316,7 @@ export async function executeRosterTool(
         scheduledFor: toOptionalString(input.scheduled_for),
         expiresAt: toOptionalString(input.expires_at),
       };
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: notice would be posted." },
-          preview: payload,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       return { result: await createAnnouncement(payload) };
     }
 
@@ -377,12 +324,7 @@ export async function executeRosterTool(
       if (!can(ctx, PermissionKey.NOTICE_BOARD_VIEW)) {
         return { error: "Permission denied: notice_board:view" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: notice would be acknowledged." },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       return {
         result: await acknowledgeAnnouncement(String(input.announcement_id)),
       };
@@ -396,12 +338,7 @@ export async function executeRosterTool(
       if (/@AI\b/i.test(content)) {
         return { error: "Shift comments sent by AI cannot mention @AI." };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: { success: true, message: "Demo mode: shift comment would be sent." },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       return {
         result: await sendShiftComment({
           shiftId: String(input.shift_id),
@@ -422,16 +359,7 @@ export async function executeRosterTool(
       ) {
         return { error: "Permission denied: worker invite outside house scope" };
       }
-      if (!isSupabaseConfigured()) {
-        return {
-          result: {
-            success: true,
-            data: { inviteToken: "mock-invite-token" },
-            message: "Demo mode: worker invitation would be sent.",
-          },
-          preview: input,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       const fd = formDataFrom(input, {
         email: "email",
         employment_type: "employmentType",
@@ -476,16 +404,7 @@ export async function executeRosterTool(
         ],
         gp_details: {},
       };
-      if (!isSupabaseConfigured()) {
-        return {
-          result: {
-            success: true,
-            data: { id: `mock-participant-${Date.now()}` },
-            message: "Demo mode: participant would be created.",
-          },
-          preview: payload,
-        };
-      }
+      if (!isSupabaseConfigured()) return toolUnavailable();
       return { result: await createParticipant(payload) };
     }
 

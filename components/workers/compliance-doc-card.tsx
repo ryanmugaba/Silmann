@@ -150,7 +150,7 @@ export function ComplianceDocCard({
             </a>
           </Button>
         ) : (
-          <p className="text-xs text-muted-foreground">No file attached (demo)</p>
+          <p className="text-xs text-muted-foreground">No file attached</p>
         )}
 
         {showActions && doc.status === "pending_approval" ? (

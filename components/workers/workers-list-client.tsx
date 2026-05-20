@@ -24,13 +24,7 @@ const COMPLIANCE_BADGE: Record<
   non_compliant: { label: "Non-compliant", variant: "destructive" },
 };
 
-export function WorkersListClient({
-  workers,
-  isMock,
-}: {
-  workers: WorkerListItem[];
-  isMock?: boolean;
-}) {
+export function WorkersListClient({ workers }: { workers: WorkerListItem[] }) {
   const [search, setSearch] = useState("");
   const [complianceFilter, setComplianceFilter] = useState<string>("all");
 
@@ -49,12 +43,6 @@ export function WorkersListClient({
 
   return (
     <div className="space-y-4">
-      {isMock ? (
-        <p className="rounded-xl border border-dashed bg-muted/40 px-4 py-2 text-sm text-muted-foreground">
-          Demo worker data — connect Supabase for live records.
-        </p>
-      ) : null}
-
       <div className="flex flex-wrap gap-3">
         <div className="relative min-w-[200px] flex-1">
           <Search

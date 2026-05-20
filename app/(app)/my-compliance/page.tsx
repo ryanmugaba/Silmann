@@ -26,13 +26,18 @@ export default async function MyCompliancePage() {
             My compliance
           </h1>
           <p className="text-muted-foreground">
-            Your worker record is not linked yet. A team leader must invite you as a
-            support worker, or complete worker onboarding from the Workers section.
+            Complete worker onboarding to submit compliance documents, or ask your
+            manager to invite you as a support worker.
           </p>
         </div>
-        <Button asChild variant="outline">
-          <Link href="/dashboard">Back to dashboard</Link>
-        </Button>
+        <div className="flex flex-wrap gap-2">
+          <Button asChild>
+            <Link href="/onboarding-worker">Start onboarding</Link>
+          </Button>
+          <Button asChild variant="outline">
+            <Link href="/dashboard">Back to dashboard</Link>
+          </Button>
+        </div>
       </div>
     );
   }

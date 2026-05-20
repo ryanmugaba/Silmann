@@ -35,7 +35,7 @@ export function WorkerOnboardingWizard({
   workerId,
 }: {
   profileId: string;
-  workerId: string;
+  workerId: string | null;
 }) {
   const [step, setStep] = useState(0);
   const [phone, setPhone] = useState("");
@@ -55,7 +55,7 @@ export function WorkerOnboardingWizard({
       return;
     }
     const fd = new FormData();
-    fd.set("workerId", workerId);
+    if (workerId) fd.set("workerId", workerId);
     fd.set("docType", docType);
     fd.set("docName", COMPLIANCE_DOC_LABELS[docType]);
     fd.set("expiryDate", expiry);

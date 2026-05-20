@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { safeActionError } from "@/lib/errors/action-safe";
 import { withPermission } from "@/lib/primitives/rbac/server";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 
@@ -44,7 +45,7 @@ export async function createReminder(input: z.infer<typeof createReminderSchema>
     });
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "reminders") };
     }
 
     revalidatePath("/reminders");
@@ -66,7 +67,7 @@ export async function completeReminder(reminderId: string) {
       .eq("id", reminderId);
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "reminders") };
     }
 
     revalidatePath("/reminders");
@@ -87,7 +88,7 @@ export async function snoozeReminder(reminderId: string, until: string) {
       .eq("id", reminderId);
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "reminders") };
     }
 
     revalidatePath("/reminders");

@@ -17,7 +17,7 @@ export const updateWorkerSchema = z.object({
 });
 
 export const submitComplianceDocSchema = z.object({
-  workerId: z.string().uuid(),
+  workerId: z.string().uuid().optional(),
   docType: z.enum(COMPLIANCE_DOC_TYPES),
   docName: z.string().min(1, "Document name is required"),
   fileUrl: z.string().url().optional().or(z.literal("")),

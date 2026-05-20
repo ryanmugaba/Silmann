@@ -9,12 +9,17 @@ import { PermissionProvider } from "@/components/shared/permission-provider";
 import type { HouseOption } from "@/components/shared/house-context";
 import { getPermissionContext } from "@/lib/primitives/rbac";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/configured";
 
 export default async function AppLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  if (!isSupabaseConfigured()) {
+    redirect("/setup");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

@@ -1,12 +1,18 @@
+import { redirect } from "next/navigation";
 import { OrganizationForm } from "@/components/settings/organization-form";
 import { PublicHolidaysList } from "@/components/settings/public-holidays-list";
-import { getPermissionContext } from "@/lib/primitives/rbac";
+import { can, getPermissionContext } from "@/lib/primitives/rbac";
+import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { createClient } from "@/lib/supabase/server";
 
 export const metadata = { title: "Organisation — Settings — Silman" };
 
 export default async function OrganizationSettingsPage() {
   const ctx = await getPermissionContext();
+  if (!can(ctx, PermissionKey.ORG_VIEW)) {
+    redirect("/dashboard");
+  }
+
   const supabase = await createClient();
 
   const [{ data: org }, { data: holidays }] = await Promise.all([

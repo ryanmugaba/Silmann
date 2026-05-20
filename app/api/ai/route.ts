@@ -6,6 +6,7 @@ import type {
 import { getOpenAIClient, MODEL } from "@/lib/ai/openai";
 import { ROSTERING_TOOLS, type RosteringToolName } from "@/lib/ai/rostering-tools";
 import { executeRosterTool } from "@/lib/ai/execute-roster-tools";
+import { USER_ERROR, USER_ERROR_UNAVAILABLE, logAndReturnUserError } from "@/lib/errors/public";
 import { getPermissionContext } from "@/lib/primitives/rbac/server";
 import { z } from "zod";
 
@@ -27,12 +28,7 @@ export async function POST(request: Request) {
 
     const client = getOpenAIClient();
     if (!client) {
-      return NextResponse.json({
-        role: "assistant",
-        content:
-          "Silman AI is not configured yet. Add OPENAI_API_KEY to .env.local, then restart npm run dev.",
-        toolCalls: [],
-      });
+      return NextResponse.json({ error: USER_ERROR_UNAVAILABLE }, { status: 503 });
     }
 
     const today = new Intl.DateTimeFormat("en-CA", {
@@ -121,8 +117,8 @@ Be concise and action-oriented.`;
       toolCalls: toolCallsLog,
     });
   } catch (e) {
-    const message = e instanceof Error ? e.message : "AI request failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    logAndReturnUserError("api/ai", e);
+    return NextResponse.json({ error: USER_ERROR }, { status: 500 });
   }
 }
 

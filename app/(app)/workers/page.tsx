@@ -18,7 +18,7 @@ export default async function WorkersPage() {
     redirect("/dashboard");
   }
 
-  const { workers, isMock } = await listWorkers(ctx.organization_id);
+  const { workers } = await listWorkers(ctx.organization_id);
 
   const supabase = await createClient();
   const { data: houseRows } = await supabase
@@ -29,13 +29,7 @@ export default async function WorkersPage() {
     .order("name")
     .returns<Pick<HouseRow, "id" | "name">[]>();
 
-  const houses =
-    houseRows && houseRows.length > 0
-      ? houseRows
-      : [
-          { id: "10000000-0000-4000-8000-000000000001", name: "Parramatta SIL" },
-          { id: "10000000-0000-4000-8000-000000000002", name: "Blacktown SIL" },
-        ];
+  const houses = houseRows ?? [];
 
   return (
     <div className="mx-auto max-w-6xl space-y-6">
@@ -58,6 +52,16 @@ export default async function WorkersPage() {
         ) : null}
       </div>
 
+      {houses.length === 0 && can(ctx, PermissionKey.WORKER_CREATE) ? (
+        <p className="rounded-xl border border-dashed border-amber-500/40 bg-amber-500/10 px-4 py-3 text-sm text-amber-900 dark:text-amber-200">
+          Add a house under{" "}
+          <Link href="/settings/houses" className="font-medium underline underline-offset-2">
+            Settings → Houses
+          </Link>{" "}
+          before you can invite workers.
+        </p>
+      ) : null}
+
       {workers.length === 0 ? (
         <div className="flex flex-col items-center rounded-2xl border border-dashed bg-muted/30 px-8 py-16 text-center shadow-card">
           <Users className="mb-4 h-12 w-12 text-muted-foreground/50" strokeWidth={1.5} />
@@ -68,7 +72,7 @@ export default async function WorkersPage() {
           </p>
         </div>
       ) : (
-        <WorkersListClient workers={workers} isMock={isMock} />
+        <WorkersListClient workers={workers} />
       )}
 
       {can(ctx, PermissionKey.WORKER_CREATE) ? (

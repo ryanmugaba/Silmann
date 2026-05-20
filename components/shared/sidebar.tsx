@@ -20,6 +20,7 @@ import {
   Bell,
   BarChart3,
   CalendarDays,
+  AlertTriangle,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Can, usePermissions } from "@/lib/primitives/rbac/hooks";
@@ -77,6 +78,12 @@ const NAV_ITEMS: NavItem[] = [
     label: "Reminders",
     icon: Clock,
     permission: PermissionKey.REMINDER_VIEW,
+  },
+  {
+    href: "/incidents",
+    label: "Incidents",
+    icon: AlertTriangle,
+    permission: PermissionKey.INCIDENT_VIEW,
   },
   {
     href: "/reports",

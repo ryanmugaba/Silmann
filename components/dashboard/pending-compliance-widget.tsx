@@ -18,12 +18,10 @@ import type { PendingComplianceItem } from "@/lib/types/workers";
 
 type PendingComplianceWidgetProps = {
   documents: PendingComplianceItem[];
-  isMock?: boolean;
 };
 
 export function PendingComplianceWidget({
   documents,
-  isMock,
 }: PendingComplianceWidgetProps) {
   const [pending, startTransition] = useTransition();
 
@@ -66,9 +64,6 @@ export function PendingComplianceWidget({
         </Button>
       </CardHeader>
       <CardContent className="space-y-2">
-        {isMock ? (
-          <p className="mb-2 text-xs text-muted-foreground">Demo data</p>
-        ) : null}
         <ul className="space-y-2">
           {documents.slice(0, 5).map((doc) => (
             <li

@@ -1,14 +1,5 @@
-import {
-  getMockParticipantById,
-  MOCK_AUDIT_LOGS,
-  MOCK_HOUSES,
-  MOCK_MEDICATIONS,
-  MOCK_PARTICIPANTS,
-  MOCK_RULE_ROWS,
-  MOCK_WORKER_PROFILES,
-} from "@/lib/data/mock-participants";
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured, shouldUseMockData } from "@/lib/supabase/configured";
+import { isSupabaseConfigured } from "@/lib/supabase/configured";
 import type {
   AuditLogRow,
   HouseRow,
@@ -28,18 +19,14 @@ export type ParticipantDetailData = {
   ruleRows: RuleRow[];
   workers: Pick<ProfileRow, "id" | "full_name">[];
   auditLogs: AuditLogRow[];
-  isMock: boolean;
 };
 
 export async function listParticipants(): Promise<{
   participants: ParticipantListItem[];
   houses: Pick<HouseRow, "id" | "name">[];
-  isMock: boolean;
 }> {
   if (!isSupabaseConfigured()) {
-    return shouldUseMockData()
-      ? { participants: MOCK_PARTICIPANTS, houses: MOCK_HOUSES, isMock: true }
-      : { participants: [], houses: [], isMock: false };
+    return { participants: [], houses: [] };
   }
 
   const supabase = await createClient();
@@ -68,7 +55,6 @@ export async function listParticipants(): Promise<{
   return {
     participants,
     houses: houseRows ?? [],
-    isMock: false,
   };
 }
 
@@ -77,17 +63,7 @@ export async function getParticipantDetail(
   organizationId: string
 ): Promise<ParticipantDetailData | null> {
   if (!isSupabaseConfigured()) {
-    const participant = getMockParticipantById(id);
-    if (!participant) return null;
-
-    return {
-      participant,
-      medications: MOCK_MEDICATIONS.filter((m) => m.participant_id === id),
-      ruleRows: MOCK_RULE_ROWS.filter((r) => r.entity_id === id),
-      workers: MOCK_WORKER_PROFILES,
-      auditLogs: MOCK_AUDIT_LOGS,
-      isMock: true,
-    };
+    return null;
   }
 
   const supabase = await createClient();
@@ -150,6 +126,5 @@ export async function getParticipantDetail(
     ruleRows: ruleRows ?? [],
     workers: workers ?? [],
     auditLogs: auditLogs ?? [],
-    isMock: false,
   };
 }

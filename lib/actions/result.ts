@@ -1,4 +1,5 @@
 import type { z } from "zod";
+import { USER_ERROR, logAndReturnUserError } from "@/lib/errors/public";
 
 export type ActionResult<T = void> =
   | { success: true; data?: T; message?: string }
@@ -17,6 +18,13 @@ export function actionError(
   fieldErrors?: Record<string, string[]>
 ): ActionResult<never> {
   return { success: false, error, fieldErrors };
+}
+
+/** User-safe error for server actions (logs optional detail server-side). */
+export function actionErrorPublic(detail?: unknown, context?: string): ActionResult<never> {
+  if (context) logAndReturnUserError(context, detail);
+  else if (detail !== undefined) console.error(detail);
+  return actionError(USER_ERROR);
 }
 
 export function zodFieldErrors(

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import type { ChatCompletionMessageParam } from "openai/resources/chat/completions";
 import { getOpenAIClient, MODEL } from "@/lib/ai/openai";
+import { USER_ERROR_UNAVAILABLE } from "@/lib/errors/public";
 import { getPermissionContext } from "@/lib/primitives/rbac/server";
 import { z } from "zod";
 
@@ -31,9 +32,7 @@ export async function POST(request: Request) {
     if (!client) {
       return NextResponse.json({
         role: "assistant",
-        content:
-          "AI help is not configured yet. Add OPENAI_API_KEY to enable conversational help.\n\n" +
-          HELP_FALLBACK,
+        content: `${USER_ERROR_UNAVAILABLE}\n\n${HELP_FALLBACK}`,
       });
     }
 
@@ -81,7 +80,7 @@ If the user asks you to perform an operational action, explain they can use the 
         "I could not generate help for that. Try asking a shorter question.",
     });
   } catch (error) {
-    const message = error instanceof Error ? error.message : "Help request failed";
-    return NextResponse.json({ error: message }, { status: 500 });
+    console.error("[ai/help]", error);
+    return NextResponse.json({ error: "Something went wrong." }, { status: 500 });
   }
 }

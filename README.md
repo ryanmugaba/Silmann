@@ -73,7 +73,9 @@ Optional local UI fixtures only: `NEXT_PUBLIC_ENABLE_MOCK_DATA=true` (never use 
 
 ## Database
 
-Migrations: `supabase/migrations/` (`0001` foundation → `0015` billing).
+Migrations: `supabase/migrations/` (`0001` foundation → `0016` incidents register).
+
+**Launch day:** see **[docs/LAUNCH.md](docs/LAUNCH.md)**.
 
 ```bash
 # Local reset + seed

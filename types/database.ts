@@ -367,6 +367,29 @@ export type ReminderRow = {
   deleted_at: string | null;
 };
 
+export type IncidentRow = {
+  id: string;
+  organization_id: string;
+  house_id: string | null;
+  participant_id: string | null;
+  reported_by: string;
+  title: string;
+  description: string;
+  incident_type: string;
+  severity: string;
+  status: string;
+  occurred_at: string;
+  immediate_actions: string | null;
+  follow_up_notes: string | null;
+  closed_at: string | null;
+  closed_by: string | null;
+  created_at: string;
+  updated_at: string;
+  created_by: string;
+  updated_by: string | null;
+  deleted_at: string | null;
+};
+
 export type CountdownEntityRow = {
   id: string;
   organization_id: string;
@@ -667,6 +690,19 @@ export type Database = {
           due_at: string;
         };
         Update: Partial<ReminderRow>;
+        Relationships: [];
+      };
+      incidents: {
+        Row: IncidentRow;
+        Insert: Partial<IncidentRow> & {
+          organization_id: string;
+          reported_by: string;
+          title: string;
+          description: string;
+          occurred_at: string;
+          created_by: string;
+        };
+        Update: Partial<IncidentRow>;
         Relationships: [];
       };
       public_holidays: {

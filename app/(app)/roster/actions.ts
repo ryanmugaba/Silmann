@@ -1,7 +1,12 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
-import { actionError, actionSuccess, zodFieldErrors } from "@/lib/actions/result";
+import {
+  actionError,
+  actionErrorPublic,
+  actionSuccess,
+  zodFieldErrors,
+} from "@/lib/actions/result";
 import { attemptActionWithRules } from "@/lib/primitives/rules/actions";
 import {
   RequiresConfirmationError,
@@ -60,28 +65,19 @@ function buildShiftRuleContext(
 
 export async function getShiftsForRange(rangeStart: string, rangeEnd: string) {
   return withPermission(PermissionKey.ROSTER_VIEW, async (ctx) => {
-    const { shifts, isMock } = await listShiftsInRange(
+    const { shifts } = await listShiftsInRange(
       ctx.organization_id,
       rangeStart,
       rangeEnd
     );
-    return actionSuccess({ shifts, isMock });
+    return actionSuccess({ shifts });
   });
 }
 
 export async function getRosterFormOptions(houseId: string) {
   return withPermission(PermissionKey.ROSTER_CREATE, async (ctx) => {
     if (!isSupabaseConfigured()) {
-      return actionSuccess({
-        workers: [
-          { id: "p1", name: "Sarah Chen" },
-          { id: "p2", name: "James O'Brien" },
-        ],
-        participants: [
-          { id: "part-1", name: "Alex Morgan" },
-          { id: "part-2", name: "Jordan Lee" },
-        ],
-      });
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -118,24 +114,7 @@ export async function getRosterFormOptions(houseId: string) {
 export async function getShiftDetailMeta(shiftId: string) {
   return withPermission(PermissionKey.ROSTER_VIEW, async (ctx) => {
     if (!isSupabaseConfigured()) {
-      return actionSuccess({
-        audit: [
-          {
-            action: "create",
-            user_name: "Demo Manager",
-            created_at: new Date().toISOString(),
-          },
-        ],
-        comments: [
-          {
-            id: "c1",
-            author: "Sarah Chen",
-            content: "Handover notes in the house log.",
-            created_at: new Date().toISOString(),
-          },
-        ],
-        channelId: null,
-      });
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -240,7 +219,7 @@ export async function createShift(formData: FormData) {
 
       const execute = async () => {
         if (!isSupabaseConfigured()) {
-          return { shiftId: `mock-${Date.now()}` };
+          throw new Error("not_configured");
         }
 
         const supabase = await createClient();
@@ -264,7 +243,7 @@ export async function createShift(formData: FormData) {
           .select("id")
           .single();
 
-        if (error) throw new Error(error.message);
+        if (error) throw error;
         return { shiftId: data?.id };
       };
 
@@ -291,7 +270,7 @@ export async function createShift(formData: FormData) {
             _form: e.result.confirms.map((r) => r.message),
           });
         }
-        throw e;
+        return actionErrorPublic(e, "roster/createShift");
       }
     },
     { house_id: formData.get("houseId")?.toString() }
@@ -353,7 +332,7 @@ export async function updateShift(formData: FormData) {
 
     if (!isSupabaseConfigured()) {
       revalidatePath("/roster");
-      return actionSuccess(undefined, "Demo mode: shift updated.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -413,7 +392,7 @@ export async function updateShift(formData: FormData) {
         .eq("id", parsed.data.shiftId)
         .eq("organization_id", ctx.organization_id);
 
-      if (error) throw new Error(error.message);
+      if (error) throw error;
     };
 
     try {
@@ -437,7 +416,7 @@ export async function updateShift(formData: FormData) {
           _form: e.result.confirms.map((r) => r.message),
         });
       }
-      throw e;
+      return actionErrorPublic(e, "roster/updateShift");
     }
   });
 }
@@ -459,7 +438,7 @@ export async function updateShiftTimes(formData: FormData) {
 
       if (!isSupabaseConfigured()) {
         revalidatePath("/roster");
-        return actionSuccess(undefined, "Demo mode: shift updated.");
+        return actionErrorPublic();
       }
 
       const supabase = await createClient();
@@ -500,7 +479,7 @@ export async function updateShiftTimes(formData: FormData) {
           .eq("id", parsed.data.shiftId)
           .eq("organization_id", ctx.organization_id);
 
-        if (error) throw new Error(error.message);
+        if (error) throw error;
       };
 
       try {
@@ -520,7 +499,7 @@ export async function updateShiftTimes(formData: FormData) {
             _form: e.result.confirms.map((r) => r.message),
           });
         }
-        throw e;
+        return actionErrorPublic(e, "roster/updateShiftTimes");
       }
     }
   );
@@ -539,7 +518,7 @@ export async function cancelShift(formData: FormData) {
 
     if (!isSupabaseConfigured()) {
       revalidatePath("/roster");
-      return actionSuccess(undefined, "Demo mode: shift cancelled.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -567,7 +546,7 @@ export async function cancelShift(formData: FormData) {
       .eq("id", parsed.data.shiftId)
       .eq("organization_id", ctx.organization_id);
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "roster");
 
     revalidatePath("/roster");
     return actionSuccess(undefined, "Shift cancelled");
@@ -596,7 +575,7 @@ export async function submitAvailability(formData: FormData) {
     }
 
     if (!isSupabaseConfigured()) {
-      return actionError("Supabase is not configured. Connect your database to submit availability.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -631,7 +610,7 @@ export async function submitAvailability(formData: FormData) {
       onConflict: "worker_id,date,start_time,end_time",
     });
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "roster");
 
     revalidatePath("/my-availability");
     revalidatePath("/roster");
@@ -656,7 +635,7 @@ export async function requestShiftSwap(formData: FormData) {
 
     if (!isSupabaseConfigured()) {
       revalidatePath("/roster");
-      return actionSuccess(undefined, "Demo mode: swap request submitted.");
+      return actionErrorPublic();
     }
 
     const supabase = await createClient();
@@ -669,7 +648,7 @@ export async function requestShiftSwap(formData: FormData) {
       status: "pending",
     });
 
-    if (error) return actionError(error.message);
+    if (error) return actionErrorPublic(error, "roster");
 
     await supabase
       .from("shifts")

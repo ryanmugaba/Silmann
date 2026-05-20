@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { safeActionError } from "@/lib/errors/action-safe";
 import { withPermission } from "@/lib/primitives/rbac/server";
 import { PermissionKey, isPermissionKey } from "@/lib/primitives/rbac/types";
 
@@ -61,7 +62,7 @@ export async function updateOrganization(input: z.infer<typeof orgSchema>) {
       .eq("id", ctx.organization_id);
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "settings") };
     }
 
     revalidatePath("/settings/organization");
@@ -86,7 +87,7 @@ export async function updateProfile(input: z.infer<typeof profileSchema>) {
       .eq("id", ctx.user_id);
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "settings") };
     }
 
     revalidatePath("/settings/profile");
@@ -117,7 +118,7 @@ export async function upsertHouse(input: z.infer<typeof houseSchema>) {
           .eq("id", parsed.id)
           .eq("organization_id", ctx.organization_id);
 
-        if (error) return { error: error.message };
+        if (error) return { error: safeActionError(error, "settings") };
       } else {
         const { error } = await supabase.from("houses").insert({
           organization_id: ctx.organization_id,
@@ -131,7 +132,7 @@ export async function upsertHouse(input: z.infer<typeof houseSchema>) {
           updated_by: ctx.user_id,
         });
 
-        if (error) return { error: error.message };
+        if (error) return { error: safeActionError(error, "settings") };
       }
 
       revalidatePath("/settings/houses");
@@ -183,7 +184,7 @@ export async function updateUserRole(userId: string, role: string) {
       .eq("id", userId)
       .eq("organization_id", ctx.organization_id);
 
-    if (error) return { error: error.message };
+    if (error) return { error: safeActionError(error, "settings") };
 
     revalidatePath("/settings/users");
     return { success: true };
@@ -212,7 +213,7 @@ export async function setPermissionGrant(
       { onConflict: "organization_id,role_name,permission_key" }
     );
 
-    if (error) return { error: error.message };
+    if (error) return { error: safeActionError(error, "settings") };
 
     revalidatePath("/settings/permissions");
     return { success: true };
@@ -229,7 +230,7 @@ export async function setUserActive(userId: string, isActive: boolean) {
       .eq("id", userId)
       .eq("organization_id", ctx.organization_id);
 
-    if (error) return { error: error.message };
+    if (error) return { error: safeActionError(error, "settings") };
 
     revalidatePath("/settings/users");
     return { success: true };
@@ -259,7 +260,7 @@ export async function resendUserInvite(userId: string) {
     });
 
     if (error) {
-      return { error: error.message };
+      return { error: safeActionError(error, "settings") };
     }
 
     return { success: true };

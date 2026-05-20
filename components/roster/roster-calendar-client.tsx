@@ -60,7 +60,6 @@ export type RosterCalendarClientProps = {
   initialShifts: ShiftRecord[];
   availabilityCells: WorkerAvailabilityCell[];
   houses: HouseOption[];
-  isMock?: boolean;
   initialCreateOpen?: boolean;
 };
 
@@ -92,7 +91,6 @@ export function RosterCalendarClient({
   initialShifts,
   availabilityCells,
   houses,
-  isMock: initialMock,
   initialCreateOpen = false,
 }: RosterCalendarClientProps) {
   const calendarRef = useRef<FullCalendar>(null);
@@ -101,7 +99,6 @@ export function RosterCalendarClient({
   const canEdit = useCan(PermissionKey.ROSTER_EDIT);
 
   const [shifts, setShifts] = useState(initialShifts);
-  const [isMock, setIsMock] = useState(initialMock ?? false);
   const isMobile = useMediaQuery("(max-width: 1023px)");
   const [view, setView] = useState<CalendarView>("timeGridWeek");
   const [statusFilter, setStatusFilter] = useState<ShiftStatus | "all">("all");
@@ -144,14 +141,13 @@ export function RosterCalendarClient({
       const result = await getShiftsForRange(start.toISOString(), end.toISOString());
       if (result.success && result.data) {
         setShifts(result.data.shifts);
-        setIsMock(result.data.isMock);
       }
     },
     []
   );
 
   useEffect(() => {
-    if (isMock || !organizationId) return;
+    if (!organizationId) return;
     const supabase = createClient();
     const channel = supabase
       .channel(`shifts-${organizationId}`)
@@ -175,7 +171,7 @@ export function RosterCalendarClient({
     return () => {
       void supabase.removeChannel(channel);
     };
-  }, [organizationId, isMock, refreshShiftsForRange]);
+  }, [organizationId, refreshShiftsForRange]);
 
   const filteredShifts = useMemo(() => {
     return shifts.filter((s) => {
@@ -349,13 +345,6 @@ export function RosterCalendarClient({
 
   return (
     <div className="space-y-6">
-      {isMock ? (
-        <div className="flex items-center gap-3 rounded-2xl border border-dashed border-primary/30 bg-primary/5 px-4 py-3 text-sm text-muted-foreground">
-          <Sparkles className="h-4 w-4 shrink-0 text-primary" strokeWidth={1.5} />
-          <p>Demo roster data - connect Supabase for live shifts and real-time updates.</p>
-        </div>
-      ) : null}
-
       <div className="overflow-hidden rounded-3xl border border-border/70 bg-card/80 shadow-card backdrop-blur-xl">
         <div className="flex flex-col gap-4 border-b border-border/70 bg-gradient-to-br from-primary/10 via-card to-transparent p-4 lg:flex-row lg:items-center lg:justify-between">
           <div>

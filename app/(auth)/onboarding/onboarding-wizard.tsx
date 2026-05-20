@@ -378,8 +378,8 @@ export function OnboardingWizard({
                 <StartTrialButton stripeConfigured={stripeConfigured} />
                 {!stripeConfigured ? (
                   <p className="rounded-xl border border-dashed border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-900 dark:text-amber-200">
-                    Add Stripe keys to <code className="text-xs">.env.local</code> to enable
-                    checkout, or skip and configure under Settings → Billing.
+                    Online checkout is not available yet. Skip for now and set up billing
+                    under Settings → Billing.
                   </p>
                 ) : null}
                 <Button asChild variant="outline">

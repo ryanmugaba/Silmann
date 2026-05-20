@@ -50,6 +50,7 @@ const MORE_LINKS = [
   { href: "/participants", label: "Participants", permission: PermissionKey.PARTICIPANT_VIEW },
   { href: "/workers", label: "Workers", permission: PermissionKey.WORKER_VIEW },
   { href: "/notice-board", label: "Notice board", permission: PermissionKey.NOTICE_BOARD_VIEW },
+  { href: "/incidents", label: "Incidents", permission: PermissionKey.INCIDENT_VIEW },
   {
     href: "/my-availability",
     label: "My availability",

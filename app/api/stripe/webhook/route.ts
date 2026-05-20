@@ -49,7 +49,7 @@ export async function POST(request: Request) {
   const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
 
   if (!stripe || !webhookSecret) {
-    return NextResponse.json({ error: "Webhook not configured" }, { status: 503 });
+    return NextResponse.json({ error: "Service unavailable" }, { status: 503 });
   }
 
   const signature = request.headers.get("stripe-signature");

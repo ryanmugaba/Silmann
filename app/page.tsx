@@ -5,7 +5,7 @@ import { isSupabaseConfigured } from "@/lib/supabase/configured";
 
 export default async function HomePage() {
   if (!isSupabaseConfigured()) {
-    return <LandingPage />;
+    redirect("/setup");
   }
 
   const supabase = await createClient();

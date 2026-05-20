@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useState } from "react";
+import { USER_ERROR, USER_ERROR_UNAVAILABLE } from "@/lib/errors/public";
 import type { AiChatMessage, AiToolCallLog } from "@/lib/ai/types";
 
 export const SILMAN_AI_WELCOME: AiChatMessage = {
@@ -40,7 +41,9 @@ export function useSilmanAiChat(initialMessage: AiChatMessage = SILMAN_AI_WELCOM
         };
 
         if (!res.ok) {
-          setError(data.error ?? "Request failed");
+          setError(
+            res.status === 503 ? USER_ERROR_UNAVAILABLE : data.error ?? USER_ERROR
+          );
           return false;
         }
 
@@ -57,7 +60,7 @@ export function useSilmanAiChat(initialMessage: AiChatMessage = SILMAN_AI_WELCOM
         ]);
         return true;
       } catch {
-        setError("Could not reach Silman AI");
+        setError(USER_ERROR);
         return false;
       } finally {
         setLoading(false);

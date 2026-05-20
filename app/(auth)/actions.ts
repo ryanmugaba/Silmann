@@ -5,10 +5,12 @@ import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 import {
   actionError,
+  actionErrorPublic,
   actionSuccess,
   zodFieldErrors,
   type ActionResult,
 } from "@/lib/actions/result";
+import { USER_ERROR } from "@/lib/errors/public";
 import { createClient, createServiceClient } from "@/lib/supabase/server";
 import {
   forgotPasswordSchema,
@@ -66,7 +68,7 @@ export async function signIn(
   const { error } = await supabase.auth.signInWithPassword(parsed.data);
 
   if (error) {
-    return actionError(error.message);
+    return actionErrorPublic(error, "auth/signIn");
   }
 
   const {
@@ -74,7 +76,7 @@ export async function signIn(
   } = await supabase.auth.getUser();
 
   if (!user) {
-    return actionError("Could not verify your session. Please try again.");
+    return actionError(USER_ERROR);
   }
 
   const { data: profile, error: profileError } = await supabase
@@ -84,7 +86,7 @@ export async function signIn(
     .maybeSingle<{ organization_id: string | null }>();
 
   if (profileError) {
-    return actionError(profileError.message);
+    return actionErrorPublic(profileError, "auth/signIn/profile");
   }
 
   if (!profile?.organization_id) {
@@ -115,7 +117,8 @@ export async function signInWithGoogle(
   });
 
   if (error || !data.url) {
-    return { error: error?.message ?? "Google sign-in could not be started." };
+    if (error) console.error("[auth/google]", error);
+    return { error: USER_ERROR };
   }
 
   return { url: data.url };
@@ -149,7 +152,7 @@ export async function signUpOwner(
   });
 
   if (error) {
-    return actionError(error.message);
+    return actionErrorPublic(error, "auth/signUp");
   }
 
   redirect("/onboarding");
@@ -179,7 +182,7 @@ export async function forgotPassword(
   });
 
   if (error) {
-    return actionError(error.message);
+    return actionErrorPublic(error, "auth/forgotPassword");
   }
 
   return actionSuccess(undefined, "Check your email for a reset link.");
@@ -204,7 +207,7 @@ export async function resetPassword(
   });
 
   if (error) {
-    return actionError(error.message);
+    return actionErrorPublic(error, "auth/resetPassword");
   }
 
   redirect("/login");
@@ -461,7 +464,7 @@ export async function sendInvitations(
     });
 
     if (error) {
-      return actionError(`Failed to invite ${invite.email}: ${error.message}`);
+      return actionErrorPublic(error, "auth/invite");
     }
 
     links.push({

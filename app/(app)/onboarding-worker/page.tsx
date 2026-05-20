@@ -19,7 +19,7 @@ export default async function OnboardingWorkerPage() {
     <div className="mx-auto max-w-xl">
       <WorkerOnboardingWizard
         profileId={ctx.user_id}
-        workerId={workerId ?? "w-demo"}
+        workerId={workerId}
       />
     </div>
   );

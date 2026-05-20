@@ -3,14 +3,15 @@ import { redirect } from "next/navigation";
 import { ChevronLeft } from "lucide-react";
 import { CreateParticipantForm } from "@/components/participants/create-participant-form";
 import { Button } from "@/components/ui/button";
-import { checkPermission } from "@/lib/primitives/rbac";
+import { getPermissionContext } from "@/lib/primitives/rbac";
+import { can } from "@/lib/primitives/rbac/check";
 import { PermissionKey } from "@/lib/primitives/rbac/types";
 import { createClient } from "@/lib/supabase/server";
 import type { HouseRow } from "@/types/database";
 
 export default async function NewParticipantPage() {
-  const canCreate = await checkPermission(PermissionKey.PARTICIPANT_CREATE);
-  if (!canCreate) {
+  const ctx = await getPermissionContext();
+  if (!can(ctx, PermissionKey.PARTICIPANT_CREATE)) {
     redirect("/participants");
   }
 
@@ -18,6 +19,7 @@ export default async function NewParticipantPage() {
   const { data: houses } = await supabase
     .from("houses")
     .select("id, name")
+    .eq("organization_id", ctx.organization_id)
     .is("deleted_at", null)
     .order("name")
     .returns<Pick<HouseRow, "id" | "name">[]>();

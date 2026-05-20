@@ -12,7 +12,7 @@ export const metadata = { title: "Audit log — Settings — Silman" };
 
 export default async function AuditLogSettingsPage() {
   const ctx = await getPermissionContext();
-  if (!can(ctx, PermissionKey.SETTINGS_VIEW)) {
+  if (!can(ctx, PermissionKey.AUDIT_LOG_VIEW)) {
     redirect("/dashboard");
   }
 

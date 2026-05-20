@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { executeRosterTool } from "@/lib/ai/execute-roster-tools";
+import { USER_ERROR } from "@/lib/errors/public";
 import { createPermissionContext, PermissionKey } from "@/lib/primitives/rbac";
 
 const managerContext = createPermissionContext({
@@ -10,32 +11,23 @@ const managerContext = createPermissionContext({
 });
 
 describe("executeRosterTool", () => {
-  it("returns scoped roster context for natural-language resolution", async () => {
+  it("returns roster context structure (empty when database is not connected)", async () => {
     const result = await executeRosterTool("get_roster_context", {}, managerContext);
 
-    expect(result.houses).toEqual([
-      { id: "10000000-0000-4000-8000-000000000001", name: "Parramatta SIL" },
-    ]);
-    expect(result.workers).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          id: "p1",
-          name: "Sarah Chen",
-          house_names: ["Parramatta SIL"],
-        }),
-      ])
-    );
-    expect(result.participants).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({
-          name: "Alex Nguyen",
-          house_name: "Parramatta SIL",
-        }),
-      ])
+    expect(result).toEqual(
+      expect.objectContaining({
+        today: expect.any(String),
+        timezone: "Australia/Sydney",
+        houses: expect.any(Array),
+        workers: expect.any(Array),
+        participants: expect.any(Array),
+        shift_presets: expect.any(Array),
+        guidance: expect.any(Array),
+      })
     );
   });
 
-  it("can execute a mock create-shift command after names are resolved", async () => {
+  it("returns a safe error when creating a shift without a database", async () => {
     const result = await executeRosterTool(
       "create_shift",
       {
@@ -50,19 +42,7 @@ describe("executeRosterTool", () => {
       managerContext
     );
 
-    expect(result.result).toEqual(
-      expect.objectContaining({
-        success: true,
-        message: "Demo mode: shift would be created.",
-      })
-    );
-    expect(result.preview).toEqual(
-      expect.objectContaining({
-        house_id: "10000000-0000-4000-8000-000000000001",
-        worker_id: "p1",
-        shift_type: "day",
-      })
-    );
+    expect(result.result).toEqual({ success: false, error: USER_ERROR });
   });
 
   it("denies create-shift commands outside the user's house scope", async () => {
@@ -123,7 +103,7 @@ describe("executeRosterTool", () => {
     expect(result).toEqual({ path: "/reminders" });
   });
 
-  it("creates mock reminders from prompt inputs", async () => {
+  it("returns a safe error when creating reminders without a database", async () => {
     const result = await executeRosterTool(
       "create_reminder",
       {
@@ -134,12 +114,7 @@ describe("executeRosterTool", () => {
       managerContext
     );
 
-    expect(result.result).toEqual(
-      expect.objectContaining({
-        success: true,
-        message: "Demo mode: reminder would be created.",
-      })
-    );
+    expect(result.result).toEqual({ success: false, error: USER_ERROR });
   });
 
   it("does not allow managers to submit availability through AI", async () => {
@@ -172,7 +147,7 @@ describe("executeRosterTool", () => {
     });
   });
 
-  it("creates participant intake records in demo mode when required fields are present", async () => {
+  it("returns a safe error when creating participants without a database", async () => {
     const result = await executeRosterTool(
       "create_participant",
       {
@@ -186,11 +161,6 @@ describe("executeRosterTool", () => {
       managerContext
     );
 
-    expect(result.result).toEqual(
-      expect.objectContaining({
-        success: true,
-        message: "Demo mode: participant would be created.",
-      })
-    );
+    expect(result.result).toEqual({ success: false, error: USER_ERROR });
   });
 });

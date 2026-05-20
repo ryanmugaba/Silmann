@@ -20,7 +20,7 @@ export default function AppError({
     <div className="mx-auto flex max-w-md flex-col items-center gap-4 py-16">
       <ErrorState
         title="This page failed to load"
-        description={error.message || "Something went wrong in the app."}
+        description="Something went wrong. Please try again or contact your administrator."
         onRetry={reset}
       />
       <Button asChild variant="outline" className="rounded-xl">

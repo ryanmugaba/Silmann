@@ -1,7 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
 import { isSupabaseConfigured } from "@/lib/supabase/configured";
-import { MOCK_HOUSES, MOCK_PARTICIPANTS } from "@/lib/data/mock-participants";
-import { MOCK_WORKERS } from "@/lib/data/mock-workers";
 import type { PermissionContext } from "@/lib/primitives/rbac/types";
 
 export type RosterCommandContext = {
@@ -30,7 +28,6 @@ export type RosterCommandContext = {
     ends_next_day?: boolean;
   }>;
   guidance: string[];
-  isMock: boolean;
 };
 
 const SHIFT_PRESETS = [
@@ -112,37 +109,14 @@ export async function getRosterCommandContext(
   ];
 
   if (!isSupabaseConfigured()) {
-    const houses = scopedHouses(MOCK_HOUSES, ctx);
-    const houseByName = new Map(houses.map((house) => [house.name, house.id]));
-
     return {
       today: todayInSydney(),
       timezone: "Australia/Sydney",
-      houses,
-      workers: MOCK_WORKERS.map((worker) => ({
-        id: worker.profileId,
-        name: worker.fullName,
-        email: worker.email,
-        house_ids: worker.houseNames
-          .map((name) => houseByName.get(name))
-          .filter((id): id is string => Boolean(id)),
-        house_names: worker.houseNames,
-      })).filter((worker) => {
-        if (ctx.role === "owner" || ctx.house_ids.length === 0) return true;
-        return worker.house_ids.some((id) => ctx.house_ids.includes(id));
-      }),
-      participants: MOCK_PARTICIPANTS.filter((participant) =>
-        houses.some((house) => house.id === participant.house_id)
-      ).map((participant) => ({
-        id: participant.id,
-        name: participant.full_name,
-        preferred_name: participant.preferred_name,
-        house_id: participant.house_id,
-        house_name: participant.house_name,
-      })),
+      houses: [],
+      workers: [],
+      participants: [],
       shift_presets: [...SHIFT_PRESETS],
       guidance,
-      isMock: true,
     };
   }
 
@@ -168,7 +142,6 @@ export async function getRosterCommandContext(
       participants: [],
       shift_presets: [...SHIFT_PRESETS],
       guidance,
-      isMock: false,
     };
   }
 
@@ -239,6 +212,5 @@ export async function getRosterCommandContext(
     })),
     shift_presets: [...SHIFT_PRESETS],
     guidance,
-    isMock: false,
   };
 }

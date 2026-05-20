@@ -190,17 +190,12 @@ export function AiAssistantDock() {
 
             <footer className="shrink-0 space-y-3 border-t border-primary/10 bg-card/95 px-4 py-4 backdrop-blur-sm">
               {aiConfigured === false ? (
-                <motion.div
-                  className="rounded-xl border border-dashed border-amber-500/50 bg-amber-500/10 px-3 py-2 text-xs text-amber-950 dark:text-amber-100"
+                <p
+                  className="rounded-xl border border-dashed border-amber-500/40 bg-amber-500/10 px-3 py-2 text-xs text-amber-950 dark:text-amber-100"
                   role="status"
                 >
-                  <p className="font-medium">AI not configured</p>
-                  <p className="mt-0.5 text-amber-900/90 dark:text-amber-200/90">
-                    Add <code className="text-[10px]">OPENAI_API_KEY</code> to{" "}
-                    <code className="text-[10px]">.env.local</code> and restart{" "}
-                    <code className="text-[10px]">npm run dev</code>.
-                  </p>
-                </motion.div>
+                  AI is temporarily unavailable.
+                </p>
               ) : null}
 
               <div className="flex flex-wrap gap-1.5">

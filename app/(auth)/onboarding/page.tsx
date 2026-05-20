@@ -1,9 +1,14 @@
 import { redirect } from "next/navigation";
 import { isStripeConfigured } from "@/lib/billing/stripe";
 import { createClient } from "@/lib/supabase/server";
+import { isSupabaseConfigured } from "@/lib/supabase/configured";
 import { OnboardingWizard } from "./onboarding-wizard";
 
 export default async function OnboardingPage() {
+  if (!isSupabaseConfigured()) {
+    redirect("/setup");
+  }
+
   const supabase = await createClient();
   const {
     data: { user },

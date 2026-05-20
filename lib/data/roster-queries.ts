@@ -1,10 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { isSupabaseConfigured, shouldUseMockData } from "@/lib/supabase/configured";
-import {
-  getMockAvailabilityGrid,
-  getMockShiftsInRange,
-  MOCK_SHIFTS,
-} from "@/lib/data/mock-roster";
+import { isSupabaseConfigured } from "@/lib/supabase/configured";
 import type { ShiftRecord, ShiftStatus, ShiftType, WorkerAvailabilityCell } from "@/lib/types/roster";
 
 function mapShiftRow(row: {
@@ -21,7 +16,7 @@ function mapShiftRow(row: {
   notes: string | null;
   houses?: { name: string } | null;
   participants?: { full_name: string } | null;
-  profiles?: { full_name: string } | null;
+  worker?: { full_name: string } | null;
 }): ShiftRecord {
   return {
     id: row.id,
@@ -31,7 +26,7 @@ function mapShiftRow(row: {
     participantId: row.participant_id,
     participantName: row.participants?.full_name ?? null,
     workerId: row.worker_id,
-    workerName: row.profiles?.full_name ?? null,
+    workerName: row.worker?.full_name ?? null,
     startAt: row.start_at,
     endAt: row.end_at,
     shiftType: row.shift_type as ShiftType,
@@ -46,14 +41,9 @@ export async function listShiftsInRange(
   rangeStart: string,
   rangeEnd: string,
   filters?: { houseId?: string; status?: ShiftStatus }
-): Promise<{ shifts: ShiftRecord[]; isMock: boolean }> {
+): Promise<{ shifts: ShiftRecord[] }> {
   if (!isSupabaseConfigured()) {
-    return shouldUseMockData()
-      ? {
-          shifts: getMockShiftsInRange(new Date(rangeStart), new Date(rangeEnd)),
-          isMock: true,
-        }
-      : { shifts: [], isMock: false };
+    return { shifts: [] };
   }
 
   const supabase = await createClient();
@@ -64,7 +54,7 @@ export async function listShiftsInRange(
       *,
       houses ( name ),
       participants ( full_name ),
-      profiles ( full_name )
+      worker:profiles!shifts_worker_id_fkey ( full_name )
     `
     )
     .eq("organization_id", organizationId)
@@ -82,22 +72,20 @@ export async function listShiftsInRange(
   const { data, error } = await query.order("start_at");
 
   if (error) {
-    return { shifts: [], isMock: false };
+    return { shifts: [] };
   }
 
   return {
     shifts: data.map((row) => mapShiftRow(row as Parameters<typeof mapShiftRow>[0])),
-    isMock: false,
   };
 }
 
 export async function getShiftById(
   shiftId: string,
   organizationId: string
-): Promise<{ shift: ShiftRecord | null; isMock: boolean }> {
+): Promise<{ shift: ShiftRecord | null }> {
   if (!isSupabaseConfigured()) {
-    const shift = MOCK_SHIFTS.find((s) => s.id === shiftId) ?? null;
-    return { shift, isMock: true };
+    return { shift: null };
   }
 
   const supabase = await createClient();
@@ -108,7 +96,7 @@ export async function getShiftById(
       *,
       houses ( name ),
       participants ( full_name ),
-      profiles ( full_name )
+      worker:profiles!shifts_worker_id_fkey ( full_name )
     `
     )
     .eq("id", shiftId)
@@ -117,22 +105,20 @@ export async function getShiftById(
     .single();
 
   if (error || !data) {
-    const shift = MOCK_SHIFTS.find((s) => s.id === shiftId) ?? null;
-    return { shift, isMock: true };
+    return { shift: null };
   }
 
   return {
     shift: mapShiftRow(data as Parameters<typeof mapShiftRow>[0]),
-    isMock: false,
   };
 }
 
 export async function getAvailabilityGrid(
   organizationId: string,
   _houseId?: string
-): Promise<{ cells: WorkerAvailabilityCell[]; isMock: boolean }> {
+): Promise<{ cells: WorkerAvailabilityCell[] }> {
   if (!isSupabaseConfigured()) {
-    return { cells: getMockAvailabilityGrid(), isMock: true };
+    return { cells: [] };
   }
 
   const supabase = await createClient();
@@ -147,12 +133,8 @@ export async function getAvailabilityGrid(
     .gte("date", start.toISOString().slice(0, 10))
     .lte("date", end.toISOString().slice(0, 10));
 
-  if (error) {
-    return { cells: [], isMock: false };
-  }
-
-  if (!data?.length) {
-    return { cells: [], isMock: false };
+  if (error || !data?.length) {
+    return { cells: [] };
   }
 
   const workerIds = Array.from(
@@ -184,7 +166,7 @@ export async function getAvailabilityGrid(
     locked: Boolean(row.locked_at),
   }));
 
-  return { cells, isMock: false };
+  return { cells };
 }
 
 export async function getWorkerAvailability(
@@ -193,15 +175,9 @@ export async function getWorkerAvailability(
 ): Promise<{
   cells: Array<{ date: string; status: WorkerAvailabilityCell["status"] }>;
   lockedDates: string[];
-  isMock: boolean;
 }> {
   if (!isSupabaseConfigured()) {
-    const mock = getMockAvailabilityGrid().filter((c) => c.workerId === workerId);
-    return {
-      cells: mock.map((c) => ({ date: c.date, status: c.status })),
-      lockedDates: mock.filter((c) => c.locked).map((c) => c.date),
-      isMock: true,
-    };
+    return { cells: [], lockedDates: [] };
   }
 
   const supabase = await createClient();
@@ -225,6 +201,5 @@ export async function getWorkerAvailability(
     lockedDates: (data ?? [])
       .filter((r: { locked_at: string | null }) => r.locked_at)
       .map((r: { date: string }) => r.date),
-    isMock: false,
   };
 }
